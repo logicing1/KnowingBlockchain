@@ -1,0 +1,56 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32014.148
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{214DA32D-1764-4708-BA9A-E21C2D82F8D4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChainTests", "ChainTests\ChainTests.csproj", "{85B822F5-1443-479C-A9CD-E89E2137931D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AlgorithmTests", "AlgorithmTests\AlgorithmTests.csproj", "{5E7E46DF-311B-4B2C-8BCB-2C03BDD91BAF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "UnitTests\UnitTests.csproj", "{6EE0BFD9-B98C-493D-A01C-829928887C24}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GroupKnowledgeContract", "GroupKnowledgeContract\GroupKnowledgeContract.csproj", "{4D495BDE-70D2-4C47-8F7F-51F308EFE01F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GroupKnowledgeClient", "GroupKnowledgeClient\GroupKnowledgeClient.csproj", "{31639CE3-55E5-417D-9E5B-989F6F9F215D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{85B822F5-1443-479C-A9CD-E89E2137931D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{85B822F5-1443-479C-A9CD-E89E2137931D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{85B822F5-1443-479C-A9CD-E89E2137931D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{85B822F5-1443-479C-A9CD-E89E2137931D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E7E46DF-311B-4B2C-8BCB-2C03BDD91BAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E7E46DF-311B-4B2C-8BCB-2C03BDD91BAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E7E46DF-311B-4B2C-8BCB-2C03BDD91BAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E7E46DF-311B-4B2C-8BCB-2C03BDD91BAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6EE0BFD9-B98C-493D-A01C-829928887C24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6EE0BFD9-B98C-493D-A01C-829928887C24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6EE0BFD9-B98C-493D-A01C-829928887C24}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6EE0BFD9-B98C-493D-A01C-829928887C24}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D495BDE-70D2-4C47-8F7F-51F308EFE01F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D495BDE-70D2-4C47-8F7F-51F308EFE01F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D495BDE-70D2-4C47-8F7F-51F308EFE01F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D495BDE-70D2-4C47-8F7F-51F308EFE01F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31639CE3-55E5-417D-9E5B-989F6F9F215D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31639CE3-55E5-417D-9E5B-989F6F9F215D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31639CE3-55E5-417D-9E5B-989F6F9F215D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31639CE3-55E5-417D-9E5B-989F6F9F215D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{85B822F5-1443-479C-A9CD-E89E2137931D} = {214DA32D-1764-4708-BA9A-E21C2D82F8D4}
+		{5E7E46DF-311B-4B2C-8BCB-2C03BDD91BAF} = {214DA32D-1764-4708-BA9A-E21C2D82F8D4}
+		{6EE0BFD9-B98C-493D-A01C-829928887C24} = {214DA32D-1764-4708-BA9A-E21C2D82F8D4}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3D431E5B-596F-4B59-9B92-A0448C4CB656}
+	EndGlobalSection
+EndGlobal

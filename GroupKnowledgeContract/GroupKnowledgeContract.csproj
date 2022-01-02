@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>GroupKnowledge.Contract</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Stratis.SmartContracts" Version="2.0.0" />
+    <PackageReference Include="Stratis.SmartContracts.Standards" Version="2.0.0" />
+  </ItemGroup>
+
+</Project>
