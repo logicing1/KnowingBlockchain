@@ -1,13 +1,33 @@
-﻿<MudPaper Square = "true">
-    <MudIconButton Icon="@Icons.Material.Filled.GroupAdd"></MudIconButton>
-    <MudIconButton Icon="@Icons.Material.Filled.GroupRemove"></MudIconButton>
-</MudPaper>
+﻿@inject IGroupsService _groupsService;
+@implements IDisposable;
 
 <MudNavMenu>
-    <MudText Typo="Typo.subtitle2" Color="Color.Inherit" Class="ml-4 my-3">Groups</MudText>
-    <MudNavLink Href="/personal/dashboard" Match="NavLinkMatch.All" Icon="@Icons.Material.Outlined.Group">Supply Chain Management</MudNavLink>
-    <MudNavLink Href="/personal/account" Icon="@Icons.Material.Outlined.Group">Scale Modeling</MudNavLink>
+    <MudToolBar Class="justify-center">
+        <MudTooltip Text="Connect to info on group." Color="Color.Secondary">
+            <MudIconButton Icon="@Icons.Material.TwoTone.GroupAdd" Color="Color.Primary" Link="/ConnectGroup" />
+        </MudTooltip>
+        <MudTooltip Text="Remove a group from this list" Color="Color.Secondary">
+            <MudIconButton Icon="@Icons.Material.TwoTone.GroupRemove" Color="Color.Primary" Link="/DisconnectGroup" />
+        </MudTooltip>
+    </MudToolBar>
+    <MudDivider Class="mb-3" />
+    @foreach (var group in _groupsService.Groups.OrderBy(g => g.Value))
+    {
+        var link = $"/group/questions/{group.Key}";
+        <MudNavLink Href=@link Match="NavLinkMatch.Prefix" Icon="@Icons.Material.TwoTone.Group">@group.Value</MudNavLink>
+    }
 </MudNavMenu>
 
 @code {
+
+    protected override void OnInitialized()
+    {
+        _groupsService.GroupsChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        _groupsService.GroupsChanged -= StateHasChanged;
+    }
+
 } 

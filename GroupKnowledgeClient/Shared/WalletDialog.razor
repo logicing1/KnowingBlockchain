@@ -1,0 +1,25 @@
+﻿@inject IWalletService _walletService
+
+<MudDialog>
+    <DialogContent>
+            <MudTextField Label="Wallet Name" @bind-Value="_walletName" Variant="Variant.Outlined"/>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" @onclick=@Submit>Ok</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private string? _walletName;
+
+    [CascadingParameter] 
+    public MudDialogInstance? MudDialog { get; set; }
+
+    private void Submit()
+    {
+        _walletService.WalletName = _walletName;
+        MudDialog?.Close(DialogResult.Ok(true));
+    }
+    private void Cancel() => MudDialog?.Cancel();
+}

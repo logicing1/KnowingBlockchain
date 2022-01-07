@@ -91,7 +91,7 @@ namespace GroupKnowledge.Contract
         public void Join()
         {
             Assert(IsMember(Message.Sender), "Already a member.");
-            Assert(Message.Value == MembershipFee, $"There is a membership fee of {MembershipFee} to join the group.");
+            Assert(Message.Value >= MembershipFee, $"There is a minimum membership fee of {MembershipFee} to join the group.");
             SetMemberBalance(Message.Sender, checked(TokenBalance * Message.Value) / Balance);
             TokenBalance += GetMemberBalance(Message.Sender);
             TotalMembers++;

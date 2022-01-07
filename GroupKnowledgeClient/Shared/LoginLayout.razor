@@ -1,6 +1,5 @@
 ﻿@inherits LayoutComponentBase
 
-
 <MudThemeProvider Theme="_currentTheme" />
 <MudSnackbarProvider />
 
@@ -15,5 +14,5 @@
 </MudContainer>
 
 @code {
-    private MudTheme _currentTheme = new MudBlazorAdminDashboard();
+    private MudTheme _currentTheme = new AppTheme();
 }

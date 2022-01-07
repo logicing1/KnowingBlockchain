@@ -1,0 +1,30 @@
+﻿@page "/questions/{GroupName}"
+
+@inject IBreadcrumbService _breadcrumbService
+
+<MudToolBar>
+    <MudText Typo="Typo.h4">@GroupName</MudText>
+    <MudSpacer />
+    <MudFab Color="Color.Primary" Icon="@Icons.Material.Filled.AddComment" IconSize="Size.Small" Label="Propose Answer" Class="mb-4" />
+</MudToolBar>
+<MudDivider Class="mb-5"/>
+<MudGrid>
+    @foreach (var question in Questions)
+    {
+        <MudItem xs="12" sm="8">
+            <QuestionCard Question="@question" /> 
+        </MudItem>
+    }
+</MudGrid>
+
+@code {
+
+    [Parameter] 
+    public string? GroupName { get; set; }
+
+    private string[] Questions = new[]
+    {
+        "Why did the chicken cross the road?",
+        "Where does the rain in Spain mainly fall?"
+    };
+}

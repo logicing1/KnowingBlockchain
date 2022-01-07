@@ -1,15 +1,18 @@
-﻿<MudCard Elevation="0" Square="true" Class="@Class" Style="@Style">
+﻿<MudCard Elevation="1">
     <MudCardHeader>
         <CardHeaderAvatar>
-            <MudAvatar><MudIcon Icon="@Icons.Material.TwoTone.QuestionAnswer"></MudIcon></MudAvatar>
+            <MudAvatar Image="images/question.png" Size="Size.Small" Square="true"/>
         </CardHeaderAvatar>
-        <CardHeaderContent>
-            <MudText Typo="Typo.body2">Why did the chicken cross the road?</MudText>
-        </CardHeaderContent>
     </MudCardHeader>
+    <MudCardContent>
+        <MudText Typo="Typo.body1">@Question</MudText>
+    </MudCardContent>
+    <MudCardActions Style="justify-content:right">
+        <MudIconButton Icon="@Icons.Material.Filled.QuestionAnswer"/>
+    </MudCardActions>
 </MudCard>
 
 @code {
-    [Parameter] public string Class { get; set; }
-    [Parameter] public string Style { get; set; }
+    [Parameter] public string? Question { get; set; }
+
 }

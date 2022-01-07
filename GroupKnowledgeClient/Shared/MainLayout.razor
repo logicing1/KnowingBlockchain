@@ -1,25 +1,29 @@
 ﻿@inherits LayoutComponentBase
 
+@inject IDialogService _dialogService
+@inject IBreadcrumbService _breadcrumbService
+@inject IWalletService _walletService
 
 <MudThemeProvider Theme="_theme" />
-<MudDialogProvider />
+<MudDialogProvider NoHeader="true" Position="DialogPosition.TopRight" />
 <MudSnackbarProvider />
 
 <MudLayout>
     <MudAppBar Elevation="25">
         <MudHidden Breakpoint="Breakpoint.SmAndDown">
-            <MudAvatar Image="icon-512.png" Variant="Variant.Outlined" Size="Size.Large"></MudAvatar>
+            <MudAvatar Image="icon-512.png" Size="Size.Large"></MudAvatar>
         </MudHidden>
         <MudHidden Breakpoint="Breakpoint.MdAndUp">
             <MudIconButton Icon="@Icons.Material.Outlined.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
         </MudHidden>
         <MudHidden Breakpoint="Breakpoint.Xs">
-            <MudText Typo="Typo.h6" Class="ml-4">Group Knowledge</MudText>
+            <MudText Typo="Typo.h6" Class="ml-4">Group Knowledge Builder</MudText>
         </MudHidden>
         <MudHidden Breakpoint="Breakpoint.Xs" Invert="true">
-            <MudText Typo="Typo.subtitle2">Group Knowledge</MudText>
+            <MudText Typo="Typo.subtitle2">Group Knowledge Builder</MudText>
         </MudHidden>
         <MudSpacer />
+        <MudButton Variant="Variant.Text" Style="text-transform:none" Color="Color.Inherit" Size="Size.Small" StartIcon="@Icons.Material.Filled.AccountBalanceWallet" @onclick="SetWallet">@_walletService.WalletName</MudButton>
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" Elevation="25" ClipMode="DrawerClipMode.Always">
         <NavMenu />
@@ -27,11 +31,9 @@
     <MudMainContent>
         <MudHidden Breakpoint="Breakpoint.SmAndDown">
             <MudToolBar DisableGutters="true">
-                <MudIconButton Icon="@Icons.Material.Outlined.Menu" Color="Color.Inherit" OnClick="@((e) => DrawerToggle())" Class="ml-3" />
-                <MudBreadcrumbs Items="_items"></MudBreadcrumbs>
+                <MudIconButton Icon="@Icons.Material.Outlined.Menu" Color="Color.Primary" OnClick="@((e) => DrawerToggle())" Class="ml-3" />
+                <MudBreadcrumbs Separator=">" Items="_breadcrumbService.Crumbs"></MudBreadcrumbs>
                 <MudSpacer />
-                <MudButton Variant="Variant.Text" Link="https://mudblazor.com/" Style="color:#594AE2;">MudBlazor</MudButton>
-                <MudButton Variant="Variant.Text" Link="https://github.com/Garderoben/GroupKnowledgeClients" Style="color:#424242;" Class="mr-3">Source Code</MudButton>
             </MudToolBar>
         </MudHidden>
         <MudContainer MaxWidth="MaxWidth.False" Class="mt-4">
@@ -40,25 +42,26 @@
     </MudMainContent>
 </MudLayout>
 
-
 @code {
-    private MudBlazorAdminDashboard _theme = new();
+
+    private AppTheme _theme = new();
 
     public bool _drawerOpen = true;
 
-    void DrawerToggle()
+    protected override void OnInitialized()
+    {
+        _breadcrumbService.BreadcrumbsChanged += StateHasChanged;
+    }
+
+    private void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
     }
 
-    protected override void OnInitialized()
+    private void SetWallet()
     {
-        StateHasChanged();
+        var options = new DialogOptions {  };
+        _dialogService.Show<WalletDialog>("Simple Dialog", options);
     }
 
-    private List<BreadcrumbItem> _items = new List<BreadcrumbItem>
-    {
-        new BreadcrumbItem("Personal", href: "#"),
-        new BreadcrumbItem("Dashboard", href: "#"),
-    };
 }

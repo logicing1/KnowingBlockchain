@@ -2,16 +2,16 @@
 
 namespace GroupKnowledgeClient.Shared
 {
-    public class MudBlazorAdminDashboard : MudTheme
+    public class AppTheme : MudTheme
     {
-        public MudBlazorAdminDashboard()
+        public AppTheme()
         {
             Palette = new Palette()
             {
-                Primary = Colors.Blue.Darken1,
-                Secondary = Colors.DeepPurple.Accent2,
+                Primary = Colors.Teal.Darken2,
+                Secondary = Colors.BlueGrey.Default,
                 Background = Colors.Grey.Lighten5,
-                AppbarBackground = Colors.Blue.Darken1,
+                AppbarBackground = Colors.Teal.Darken1,
                 DrawerBackground = "#FFF",
                 DrawerText = "rgba(0,0,0, 0.7)",
                 Success = "#06d79c"

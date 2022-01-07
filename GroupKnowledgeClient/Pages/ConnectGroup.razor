@@ -1,0 +1,32 @@
+﻿@page "/"
+@page "/ConnectGroup"
+@layout MainLayout
+
+@using Stratis.SmartContracts
+
+@inject NavigationManager _navigation;
+@inject IGroupsService _groupsService;
+
+
+<MudContainer Class="d-flex justify-center align-center">
+    <MudPaper Elevation="5" Class="pa-5" style="text-align:center">
+        <MudContainer Class="d-flex flex-column justify-center" style="width: 450px">
+            <img src="/icon-512.png">
+            <MudTextField Label="Group Contract Address" @bind-Value="address" Variant="Variant.Outlined"></MudTextField>
+            <MudFab Icon="@Icons.Material.TwoTone.GroupAdd" Label="Connect" Size="Size.Large" Class="align-self-center mt-6" Color="Color.Primary" @onclick="Connect" />
+            <MudIconButton Icon="@Icons.Material.Outlined.Info" Size="Size.Small" Class="mt-10 align-self-end" Color="Color.Info" />
+        </MudContainer>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private string? address;
+
+    private void Connect()
+    {
+        address = Address.Zero + 55.ToString();
+        _groupsService.Connect(address);
+        _navigation.NavigateTo($"group/questions/{address}");
+    }
+
+}
