@@ -1,0 +1,23 @@
+﻿<MudToolBar DisableGutters="true">
+    <MudIconButton Icon="@Icons.Material.Outlined.Menu" Size="Size.Large" Color="Color.Primary" @onclick=@DrawerToggle Class="ml-3" />
+    <MudSpacer />
+    <MudTooltip Text="Join Group" Color="Color.Secondary">
+        <MudIconButton Icon="@Icons.Material.TwoTone.AccountCircle" Size="Size.Large" Color="Color.Primary" Link="/disconnect" />
+    </MudTooltip>
+    <MudTooltip Text="Withdraw Tokens" Color="Color.Secondary">
+        <MudIconButton Icon="@Icons.Material.TwoTone.GeneratingTokens" Size="Size.Large" Color="Color.Primary" Link="/disconnect" />
+    </MudTooltip>
+    <MudTooltip Text="Ask Question" Color="Color.Secondary">
+        <MudIconButton Icon="@Icons.Material.TwoTone.Quiz" Size="Size.Large" Color="Color.Primary" Link="/disconnect" />
+    </MudTooltip>
+    <MudTooltip Text="Answer Question" Color="Color.Secondary">
+        <MudIconButton Icon="@Icons.Material.TwoTone.AddComment" Size="Size.Large" Color="Color.Primary" Link="/disconnect" />
+    </MudTooltip>
+</MudToolBar>
+
+@code {
+
+    [Parameter]
+    public Action? DrawerToggle { get; set; } = default;
+
+}

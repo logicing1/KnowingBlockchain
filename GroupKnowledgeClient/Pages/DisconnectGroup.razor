@@ -1,16 +1,16 @@
-﻿@page "/DisconnectGroup"
+﻿@page "/disconnect"
 @layout MainLayout
 
-@inject IGroupsService _groupsService;
+@inject IGroupState groupState;
 
 <MudContainer Class="d-flex justify-center align-center">
     <MudPaper Elevation="5" Class="pa-5" style="text-align:center">
         <MudContainer Class="d-flex flex-column justify-center" style="width: 450px">
             <img src="/icon-512.png">
-            <MudSelect T=string Label="Group Name" Placeholder="Select Group to Disconnect" Variant="Variant.Outlined"  OffsetY="true" @bind-Value="address">
-                @foreach (var group in _groupsService.Groups)
+            <MudSelect T=Group Label="Group Name" Placeholder="Select Group to Disconnect" Variant="Variant.Outlined"  OffsetY="true" @bind-Value="group">
+                @foreach (var group in groupState.List)
                 {
-                    <MudSelectItem Value=@group.Key>@group.Value</MudSelectItem>
+                    <MudSelectItem Value=@group>@group.Name</MudSelectItem>
                 }
             </MudSelect>
             <MudFab Icon="@Icons.Material.Filled.GroupRemove" Label="Disconnect" Size="Size.Large" Class="align-self-center mt-6" Color="Color.Warning" @onclick="Disconnect" />
@@ -20,13 +20,13 @@
 </MudContainer>
 
 @code {
-    private string? address;
+    private Group? group = default;
 
     private void Disconnect()
     {
-        if (string.IsNullOrEmpty(address)) return;
-        _groupsService.Disconnect(address);
-        address = string.Empty;
+        if (group == default) return;
+        groupState.Disconnect(group);
+        group = default;
         StateHasChanged();
     }
 

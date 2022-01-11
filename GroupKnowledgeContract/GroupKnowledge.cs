@@ -110,17 +110,14 @@ namespace GroupKnowledge.Contract
 
         public uint MembershipSize() => TotalMembers;
 
-        public string Ask(string question)
+        public string Ask(string questionCid)
         {
-            question = question?.Trim() ?? string.Empty;
-            Assert(question.Length >= MIN_QUESTION_LENGTH && question.Length <= MAX_QUESTION_LENGTH, $"Question length must be between {MIN_QUESTION_LENGTH} and {MAX_QUESTION_LENGTH}.");
             Assert(Block.Number - LastAskBlock > ASK_INTERVAL, $"Only one question can be asked every {ASK_INTERVAL} blocks.");
-            var hash = Keccak256(Serializer.Serialize(question));
-            var result = Create<GroupKnowledgeQuestion>(0, new object[] { Address, hash });
+            var result = Create<GroupKnowledgeQuestion>(0, new object[] { Address, questionCid });
             Assert(result.Success, "Failed to create a contract for the question asked.");
-            SetQuestion(++TotalAsked, hash, result.NewContractAddress);
-            SetUnanswered(++TotalUnanswered, hash);
-            return Serializer.ToString(hash);
+            SetQuestion(++TotalAsked, questionCid, result.NewContractAddress);
+            SetUnanswered(++TotalUnanswered, questionCid);
+            return result.NewContractAddress.ToString();
         }
 
         public string ListAsked()
@@ -128,7 +125,7 @@ namespace GroupKnowledge.Contract
             var asked = new string[TotalAsked];
             for (var index = 0u; index < TotalAsked; index++)
             {
-                asked[index] = Serializer.ToString(GetAsked(index));
+                asked[index] = GetAsked(index);
             }
             return string.Join(',', asked);
         }
@@ -138,50 +135,50 @@ namespace GroupKnowledge.Contract
             var unanswered = new string[TotalUnanswered];
             for (var index = 0u; index < TotalUnanswered; index++)
             {
-                unanswered[index] = Serializer.ToString(GetUnanswered(index));
+                unanswered[index] = GetUnanswered(index);
             }
             return string.Join(',', unanswered);
         }
 
-        public void Voted(byte[] questionHash, Address voter)
+        public void Voted(string questionCid, Address voter)
         {
-            Assert(Message.Sender == GetQuestionAddress(questionHash), "Only the question contract can report a vote.");
+            Assert(Message.Sender == GetQuestionAddress(questionCid), "Only the question contract can report a vote.");
             Assert(GetMemberBalance(voter) > 0, "Voter is not a current group member.");
             SetMemberBalance(voter, GetMemberBalance(voter) + VoterReward);
         }
 
-        public void Answered(Address answerer, byte[] questionHash)
+        public void Answered(Address answerer, string cid)
         {
-            Assert(Message.Sender == GetQuestionAddress(questionHash), "Only the question contract can report an answer.");
+            Assert(Message.Sender == GetQuestionAddress(cid), "Only the question contract can report an answer.");
             var index = GetQuestionIndex(Message.Sender);
-            Assert(GetUnanswered(index) == questionHash, "Not an unanswered question.");
+            Assert(GetUnanswered(index) == cid, "Not an unanswered question.");
             ClearUnanswered(index);
             Assert(GetMemberBalance(answerer) > 0, "Answerer is not a current group member.");
             SetMemberBalance(answerer, GetMemberBalance(answerer) + AnswererReward);
         }
 
-        private void SetQuestion(uint index, byte[] hash, Address contractAddress)
+        private void SetQuestion(uint index, string cid, Address contractAddress)
         {
-            SetAsked(index, hash);
-            SetQuestionAddress(hash, contractAddress);
+            SetAsked(index, cid);
+            SetQuestionAddress(cid, contractAddress);
             SetQuestionIndex(Address, index);
         }
 
         private ulong GetMemberBalance(Address member) => State.GetUInt64($"Member:{member}:Balance");
         private void SetMemberBalance(Address member, ulong value) => State.SetUInt64($"Member:{member}:Balance", value);
 
-        private Address GetQuestionAddress(byte[] hash) => State.GetAddress($"Question:{hash}:Address");
-        private void SetQuestionAddress(byte[] hash, Address questionAddress) => State.SetAddress($"Question:{hash}:Address", Address);
+        private Address GetQuestionAddress(string cid) => State.GetAddress($"Question:{cid}:Address");
+        private void SetQuestionAddress(string cid, Address questionAddress) => State.SetAddress($"Question:{cid}:Address", Address);
 
         private uint GetQuestionIndex(Address questionAddress) => State.GetUInt32($"Question:{questionAddress}:Index");
         private void SetQuestionIndex(Address questionAddress, uint index) => State.SetUInt32($"Question:{questionAddress}:Index", index);
 
-        private byte[] GetAsked(uint index) => State.GetBytes($"Asked:{index}:Hash");
-        private void SetAsked(uint index, byte[] hash) => State.SetBytes($"Asked:{index}:Hash", hash);
+        private string GetAsked(uint index) => State.GetString($"Asked:{index}");
+        private void SetAsked(uint index, string cid) => State.SetString($"Asked:{index}", cid);
 
-        private byte[] GetUnanswered(uint index) => State.GetBytes($"Unanswered:{index}:Hash");
-        private void SetUnanswered(uint index, byte[] hash) => State.SetBytes($"Unanswered:{index}:Hash", hash);
-        private void ClearUnanswered(uint index) => State.Clear($"Unanswered:{index}:Hash");
+        private string GetUnanswered(uint index) => State.GetString($"Unanswered:{index}:CID");
+        private void SetUnanswered(uint index, string cid) => State.SetString($"Unanswered:{index}:CID", cid);
+        private void ClearUnanswered(uint index) => State.Clear($"Unanswered:{index}:CID");
     }
 
 

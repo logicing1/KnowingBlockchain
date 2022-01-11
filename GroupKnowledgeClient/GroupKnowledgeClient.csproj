@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
@@ -11,14 +11,16 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Ipfs.Http.Client" Version="0.33.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.1" PrivateAssets="all" />
 		<PackageReference Include="MudBlazor" Version="6.0.2" />
+		<PackageReference Include="Pinata.Client" Version="1.0.0" />
 		<PackageReference Include="Stratis.SmartContracts.Standards" Version="2.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Models\" />
+	  <ProjectReference Include="..\StratisClient\StratisClient.csproj" />
 	</ItemGroup>
 	
 	

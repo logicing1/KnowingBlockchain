@@ -1,8 +1,9 @@
 ﻿@inherits LayoutComponentBase
 
 @inject IDialogService _dialogService
-@inject IBreadcrumbService _breadcrumbService
-@inject IWalletService _walletService
+@inject IGroupState groupState
+@inject IWalletState walletState
+@implements IDisposable;
 
 <MudThemeProvider Theme="_theme" />
 <MudDialogProvider NoHeader="true" Position="DialogPosition.TopRight" />
@@ -23,16 +24,16 @@
             <MudText Typo="Typo.subtitle2">Group Knowledge Builder</MudText>
         </MudHidden>
         <MudSpacer />
-        <MudButton Variant="Variant.Text" Style="text-transform:none" Color="Color.Inherit" Size="Size.Small" StartIcon="@Icons.Material.Filled.AccountBalanceWallet" @onclick="SetWallet">@_walletService.WalletName</MudButton>
+        <MudButton Variant="Variant.Text" Style="text-transform:none" Color="Color.Inherit" Size="Size.Small" StartIcon="@Icons.Material.Filled.AccountBalanceWallet" @onclick="SetWallet">@walletState.WalletName</MudButton>
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" Elevation="25" ClipMode="DrawerClipMode.Always">
         <NavMenu />
     </MudDrawer>
     <MudMainContent>
         <MudHidden Breakpoint="Breakpoint.SmAndDown">
-            <MudToolBar DisableGutters="true">
+            <MudToolBar DisableGutters="true" Dense="true">
                 <MudIconButton Icon="@Icons.Material.Outlined.Menu" Color="Color.Primary" OnClick="@((e) => DrawerToggle())" Class="ml-3" />
-                <MudBreadcrumbs Separator=">" Items="_breadcrumbService.Crumbs"></MudBreadcrumbs>
+                <MudText Typo="Typo.h5">@groupState?.Selected?.Name</MudText>
                 <MudSpacer />
             </MudToolBar>
         </MudHidden>
@@ -50,8 +51,14 @@
 
     protected override void OnInitialized()
     {
-        _breadcrumbService.BreadcrumbsChanged += StateHasChanged;
+        groupState.Changed += StateHasChanged;
     }
+
+    public void Dispose()
+    {
+        groupState.Changed -= StateHasChanged;
+    }
+
 
     private void DrawerToggle()
     {
@@ -60,8 +67,8 @@
 
     private void SetWallet()
     {
-        var options = new DialogOptions {  };
-        _dialogService.Show<WalletDialog>("Simple Dialog", options);
+        var options = new DialogOptions { };
+        _dialogService.Show<WalletDialog>("Wallet", options);
     }
 
 }

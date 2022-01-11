@@ -1,15 +1,15 @@
 ﻿<MudCard Elevation="1">
     <MudCardHeader>
         <CardHeaderAvatar>
-            <MudIcon Icon="@Icons.Material.TwoTone.Quiz" Size="Size.Small" Color="Color.Secondary"/>
+            <MudIcon Icon="@Icons.Material.TwoTone.QuestionAnswer" Color="Color.Secondary" Size="Size.Small" Square="true"/>
         </CardHeaderAvatar>
     </MudCardHeader>
     <MudCardContent>
-        <MudText Typo="Typo.body1">@Question</MudText>
+        <MudText Typo="Typo.body1">@Content</MudText>
     </MudCardContent>
     <MudCardActions Style="justify-content:right">
         <MudTooltip Text="See Answers" Color="Color.Secondary">
-            <MudIconButton Icon="@Icons.Material.TwoTone.QuestionAnswer" Color="Color.Primary" Size="Size.Large"/>
+            <MudIconButton Icon="@Icons.Material.TwoTone.QuestionAnswer" Color="Color.Primary"/>
         </MudTooltip>
     </MudCardActions>
 </MudCard>
@@ -17,6 +17,6 @@
 @code {
 
     [Parameter] 
-    public string? Question { get; set; }
+    public string? Content { get; set; }
 
 }

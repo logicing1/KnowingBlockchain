@@ -1,6 +1,4 @@
-﻿@page "/questions/{GroupName}"
-
-@inject IBreadcrumbService _breadcrumbService
+﻿@page "/answers/{questionNumber}/{GroupName}"
 
 <MudToolBar>
     <MudText Typo="Typo.h4">@GroupName</MudText>
@@ -9,10 +7,10 @@
 </MudToolBar>
 <MudDivider Class="mb-5"/>
 <MudGrid>
-    @foreach (var question in Questions)
+    @foreach (var answer in Answers)
     {
         <MudItem xs="12" sm="8">
-            <QuestionCard Question="@question" /> 
+            <AnswerCard Content="@answer" /> 
         </MudItem>
     }
 </MudGrid>
@@ -22,7 +20,7 @@
     [Parameter] 
     public string? GroupName { get; set; }
 
-    private string[] Questions = new[]
+    private string[] Answers = new[]
     {
         "Why did the chicken cross the road?",
         "Where does the rain in Spain mainly fall?"

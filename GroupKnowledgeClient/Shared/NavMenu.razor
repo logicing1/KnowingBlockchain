@@ -1,20 +1,22 @@
-﻿@inject IGroupsService _groupsService;
+﻿@using GroupKnowledgeClient.State
+
+@inject IGroupState _groupState;
 @implements IDisposable;
 
+<MudToolBar Class="justify-center">
+    <MudTooltip Text="Connect to info on group." Color="Color.Secondary">
+        <MudIconButton Icon="@Icons.Material.TwoTone.GroupAdd" Color="Color.Primary" Link="/connect" />
+    </MudTooltip>
+    <MudTooltip Text="Remove a group from this list" Color="Color.Secondary">
+        <MudIconButton Icon="@Icons.Material.TwoTone.GroupRemove" Color="Color.Primary" Link="/disconnect" />
+    </MudTooltip>
+</MudToolBar>
+<MudDivider Class="mb-3" />
 <MudNavMenu>
-    <MudToolBar Class="justify-center">
-        <MudTooltip Text="Connect to info on group." Color="Color.Secondary">
-            <MudIconButton Icon="@Icons.Material.TwoTone.GroupAdd" Color="Color.Primary" Link="/ConnectGroup" />
-        </MudTooltip>
-        <MudTooltip Text="Remove a group from this list" Color="Color.Secondary">
-            <MudIconButton Icon="@Icons.Material.TwoTone.GroupRemove" Color="Color.Primary" Link="/DisconnectGroup" />
-        </MudTooltip>
-    </MudToolBar>
-    <MudDivider Class="mb-3" />
-    @foreach (var group in _groupsService.Groups.OrderBy(g => g.Value))
+    @foreach (var group in _groupState.List.OrderBy(g => g.Name))
     {
-        var link = $"/group/questions/{group.Key}";
-        <MudNavLink Href=@link Match="NavLinkMatch.Prefix" Icon="@Icons.Material.TwoTone.Group">@group.Value</MudNavLink>
+        var link = $"/questions/{group.Contract}";
+        <MudNavLink Href=@link Match="NavLinkMatch.Prefix" Icon="@Icons.Material.TwoTone.Group">@group.Name</MudNavLink>
     }
 </MudNavMenu>
 
@@ -22,12 +24,12 @@
 
     protected override void OnInitialized()
     {
-        _groupsService.GroupsChanged += StateHasChanged;
+        _groupState.Changed += StateHasChanged;
     }
 
     public void Dispose()
     {
-        _groupsService.GroupsChanged -= StateHasChanged;
+        _groupState.Changed -= StateHasChanged;
     }
 
 } 
