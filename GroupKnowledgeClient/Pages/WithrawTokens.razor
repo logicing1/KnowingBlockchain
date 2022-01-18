@@ -1,5 +1,56 @@
-﻿<h3>WithrawTokens</h3>
+﻿@page "/withdraw/{contract}"
+@layout MainLayout
+
+@inject NavigationManager navigation;
+@inject ISnackbar snackbar;
+@inject IGroupState groupState;
+
+<MudContainer Class="d-flex justify-center align-center">
+    <MudPaper Elevation="5" Class="pa-5" Style="text-align:center">
+        <MudText Typo="Typo.h5" Class="mt-2">Withdraw Tokens:</MudText>
+        <MudText Typo="Typo.h6" Class="mt-a">@Group.Name</MudText>
+        <MudNumericField Variant="Variant.Outlined" Class="mt-2" T="ulong" Label="Tokens to cash out" Max="@Group.Balance" @bind-Value="TokensOut" />
+        <MudFab Icon="@Icons.Material.Filled.GroupRemove" Label="Withdraw" Size="Size.Medium" Class="mt-6 align-self-center" Color="Color.Primary" @onclick="Withdraw" />
+    </MudPaper>
+</MudContainer>
 
 @code {
+
+    [Parameter]
+    public string Contract { get; set; } = string.Empty;
+
+    private Group Group { get; set; } = Group.Empty;
+
+    private ulong TokensOut { get; set; } = 0;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var connected = groupState.Connected.TryGetValue(Contract, out var group);
+        if (connected && group != null)
+        {
+            Group = group;
+            await Group.LoadMembershipFee();
+            TokensOut = group.Balance;
+        }
+        else
+        {
+            snackbar.Add("The group is not connected", Severity.Error);
+        }
+    }
+
+    private async Task Withdraw()
+    {
+        var success = await Group.Withdraw(TokensOut);
+        if (success)
+        {
+            snackbar.Add("Withdrew Tokens Successfully", Severity.Success);
+            navigation.NavigateTo($"/questions/{Group.Address}");
+        }
+        else
+        {
+            snackbar.Add("Transaction to withdraw tokens failed", Severity.Error);
+        }
+    }
+
 
 }

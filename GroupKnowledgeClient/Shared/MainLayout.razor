@@ -1,11 +1,12 @@
 ﻿@inherits LayoutComponentBase
 
-@inject IDialogService _dialogService
+@inject IDialogService dialogService
 @inject IGroupState groupState
 @inject IWalletState walletState
+
 @implements IDisposable;
 
-<MudThemeProvider Theme="_theme" />
+<MudThemeProvider Theme="theme" />
 <MudDialogProvider NoHeader="true" Position="DialogPosition.TopRight" />
 <MudSnackbarProvider />
 
@@ -26,15 +27,27 @@
         <MudSpacer />
         <MudButton Variant="Variant.Text" Style="text-transform:none" Color="Color.Inherit" Size="Size.Small" StartIcon="@Icons.Material.Filled.AccountBalanceWallet" @onclick="SetWallet">@walletState.WalletName</MudButton>
     </MudAppBar>
-    <MudDrawer @bind-Open="_drawerOpen" Elevation="25" ClipMode="DrawerClipMode.Always">
+    <MudDrawer @bind-Open="DrawerOpen" Elevation="25" ClipMode="DrawerClipMode.Always">
         <NavMenu />
     </MudDrawer>
     <MudMainContent>
         <MudHidden Breakpoint="Breakpoint.SmAndDown">
             <MudToolBar DisableGutters="true" Dense="true">
                 <MudIconButton Icon="@Icons.Material.Outlined.Menu" Color="Color.Primary" OnClick="@((e) => DrawerToggle())" Class="ml-3" />
-                <MudText Typo="Typo.h5">@groupState?.Selected?.Name</MudText>
+                <MudText Typo="Typo.h5">@SelectedGroup.Name</MudText>
                 <MudSpacer />
+                @if (SelectedGroup != Group.Empty && IsMember)
+                {
+                    <MudTooltip Text="Withdraw Tokens" Color="Color.Secondary">
+                        <MudIconButton Icon="@Icons.Material.TwoTone.GeneratingTokens" Size="Size.Large" Color="Color.Primary" Link="@($"/withdraw/{@SelectedGroup.Address}")" />
+                    </MudTooltip>
+                }
+                else if (SelectedGroup != Group.Empty)
+                {
+                    <MudTooltip Text="Join Group" Color="Color.Secondary">
+                        <MudIconButton Icon="@Icons.Material.TwoTone.AccountCircle" Size="Size.Large" Color="Color.Primary" Link="@($"/join/{@SelectedGroup.Address}")" />
+                    </MudTooltip>
+                }
             </MudToolBar>
         </MudHidden>
         <MudContainer MaxWidth="MaxWidth.False" Class="mt-4">
@@ -45,30 +58,40 @@
 
 @code {
 
-    private AppTheme _theme = new();
+    public bool DrawerOpen = true;
 
-    public bool _drawerOpen = true;
+    private readonly AppTheme theme = new();
 
-    protected override void OnInitialized()
-    {
-        groupState.Changed += StateHasChanged;
-    }
+    private Group SelectedGroup => groupState.Selected ?? Group.Empty;
+
+    private string GroupName => groupState?.Selected?.Name ?? string.Empty;
+
+    private bool IsMember => SelectedGroup.Balance > 0;
 
     public void Dispose()
     {
-        groupState.Changed -= StateHasChanged;
+        groupState.Changed -= Refresh;
     }
 
+    protected override void OnInitialized()
+    {
+        groupState.Changed += Refresh;
+    }
 
     private void DrawerToggle()
     {
-        _drawerOpen = !_drawerOpen;
+        DrawerOpen = !DrawerOpen;
     }
 
     private void SetWallet()
     {
         var options = new DialogOptions { };
-        _dialogService.Show<WalletDialog>("Wallet", options);
+        dialogService.Show<WalletDialog>("Wallet", options);
+    }
+
+    private async Task Refresh()
+    {
+        StateHasChanged();
     }
 
 }

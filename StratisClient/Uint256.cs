@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Logicing.Deciding.StratisClient
+namespace Logicing.Knowing.StratisClient
 {
     [JsonConverter(typeof(Uint256Converter))]
     public partial class Uint256

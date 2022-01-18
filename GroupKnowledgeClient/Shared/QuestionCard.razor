@@ -1,22 +1,36 @@
 ﻿<MudCard Elevation="1">
     <MudCardHeader>
         <CardHeaderAvatar>
-            <MudIcon Icon="@Icons.Material.TwoTone.Quiz" Size="Size.Small" Color="Color.Secondary"/>
+            <div class="d-flex">
+                <MudIcon Icon="@Icons.Material.TwoTone.Quiz" Size="Size.Small" Color="Color.Secondary" />
+                <MudText Typo="Typo.subtitle2" Class="ml-2">Question @Question.Index</MudText>
+            </div>
         </CardHeaderAvatar>
     </MudCardHeader>
     <MudCardContent>
-        <MudText Typo="Typo.body1">@Question</MudText>
+        <MudText Typo="Typo.body1">@Question.Content</MudText>
     </MudCardContent>
     <MudCardActions Style="justify-content:right">
         <MudTooltip Text="See Answers" Color="Color.Secondary">
-            <MudIconButton Icon="@Icons.Material.TwoTone.QuestionAnswer" Color="Color.Primary" Size="Size.Large"/>
+            <MudIconButton Icon="@Icons.Material.TwoTone.QuestionAnswer"  ButtonType="ButtonType.Button" Color="Color.Primary" Size="Size.Large" Link="@answersLink"/>
         </MudTooltip>
     </MudCardActions>
 </MudCard>
 
 @code {
 
-    [Parameter] 
-    public string? Question { get; set; }
+    private string answersLink = string.Empty;
+
+    [Parameter]
+    public Question Question { get; set; } = Question.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await Question.LoadContent();
+        Console.WriteLine(Question.Cid);
+        Console.WriteLine(Question.Content);
+        answersLink = $"/rank/{Question.Address}";
+    }
+
 
 }

@@ -1,5 +1,57 @@
-﻿<h3>AnswerQuestion</h3>
+﻿@page "/answer/{contract}"
+@layout MainLayout
+
+@inject NavigationManager navigation;
+@inject ISnackbar snackbar;
+@inject IGroupState groupState;
+
+<MudContainer Class="d-flex justify-center align-center">
+    <MudPaper Elevation="5" Class="pa-5 mud-width-full">
+        <MudContainer Class="d-flex flex-column">
+            <MudExpansionPanel>
+                <TitleContent>
+                    <div class="d-flex">
+                        <MudIcon Icon="@Icons.Material.TwoTone.Quiz" Size="Size.Large" Color="Color.Secondary" />
+                        <MudText Color="Color.Secondary" Typo="Typo.h6" Class="ml-2">Question @Question.Index</MudText>
+                    </div>
+                </TitleContent>
+                <ChildContent>
+                    <MudText Typo="Typo.body2">@Question.Content</MudText>
+                </ChildContent>
+            </MudExpansionPanel>
+            <MudTextField T="string" Label="Answer" @bind-Value="AnswerContent" Variant="Variant.Outlined" Lines="50" />
+            <MudFab Icon="@Icons.Material.TwoTone.QuestionAnswer" Label="Answer" Size="Size.Medium" Class="align-self-center mt-6" Color="Color.Primary" @onclick="Answer" />
+        </MudContainer>
+    </MudPaper>
+</MudContainer>
 
 @code {
+    [Parameter]
+    public string Contract { get; set; } = string.Empty;
 
+    private Question Question { get; set; } = Question.Empty;
+
+    private string AnswerContent { get; set; } = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        Question = groupState.SelectQuestion(Contract);
+        if (Question == Question.Empty)
+        {
+            snackbar.Add("Unknown Question", Severity.Error);
+        }
+    }
+
+    private async Task Answer()
+    {
+        var success = await Question.Answer(AnswerContent);
+        if (success)
+        {
+            snackbar.Add("Transaction to answer question succeeded", Severity.Success);
+        }
+        else
+        {
+            snackbar.Add("Transaction to answer question failed", Severity.Error);
+        }
+    }
 }

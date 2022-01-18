@@ -1,52 +1,51 @@
 ﻿@page "/questions/{contract}"
 @layout MainLayout
 
+@inject NavigationManager navigation;
+@inject ISnackbar snackbar;
 @inject IGroupState groupState;
 
 <MudToolBar>
     <MudSpacer />
-    @if (!IsMember)
-    {
-        <MudTooltip Text="Join Group" Color="Color.Secondary">
-            <MudIconButton Icon="@Icons.Material.TwoTone.AccountCircle" Size="Size.Large" Color="Color.Primary" Link="/join" />
-        </MudTooltip>
-    }
-    else
+    @if (IsMember)
     {
         <MudTooltip Text="Ask Question" Color="Color.Secondary">
-            <MudIconButton Icon="@Icons.Material.TwoTone.Quiz" Size="Size.Large" Color="Color.Primary" Link="/ask" />
-        </MudTooltip>
-        <MudTooltip Text="Withdraw Tokens" Color="Color.Secondary">
-            <MudIconButton Icon="@Icons.Material.TwoTone.GeneratingTokens" Size="Size.Large" Color="Color.Primary" Link="/withdraw" />
+            <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.TwoTone.Quiz" Size="Size.Medium" Color="Color.Primary" Link="@($"/ask/{@Contract}")">Ask New Question</MudButton>
         </MudTooltip>
     }
 </MudToolBar>
 <MudDivider Class="mb-5" />
 <MudGrid>
-    if(@group != default)
+    @foreach (var question in Group.Questions)
     {
-        @foreach (var question in group.Questions)
-        {
-            <MudItem xs="12" sm="8">
-                <QuestionCard Question="@question.Content" />
-            </MudItem>
-        }
+        <MudItem xl="4" lg="6" md="12">
+            <QuestionCard Question="@question" />
+        </MudItem>
     }
 </MudGrid>
 
 @code {
 
-    private Group? group;
-
     [Parameter]
-    public string contract { get; set; } = string.Empty;
+    public string Contract { get; set; } = string.Empty;
 
-    private bool IsMember => group?.Balance > 0;
+    private Group Group { get; set; } = Group.Empty;
 
-    protected override void OnParametersSet()
+    private bool IsMember => Group.Balance > 0;
+
+    protected override async Task OnParametersSetAsync()
     {
-        group = groupState?.List?.SingleOrDefault(g => g.Contract == contract);
-        if (groupState != default) groupState.Selected = group;
+        var connected = groupState.Connected.TryGetValue(Contract, out var group);
+        if (connected && group != null)
+        {
+            Group = group;
+            groupState.Selected = group;
+            await Group.Load();
+        }
+        else
+        {
+            snackbar.Add("Group Not Connected", Severity.Error);
+        }
     }
 
 }

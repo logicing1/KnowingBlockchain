@@ -1,11 +1,9 @@
-﻿using Logicing.Deciding.StratisClient;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using GroupKnowledgeClient.Model;
+using Logicing.Knowing.StratisClient;
 
-namespace GroupKnowledgeClient.Model
+namespace GroupKnowledgeClient.Services.Default
 {
-    public abstract class ContractProxy
+    public class ContractProxy : IContractProxy
     {
         protected const long DefaultGasPrice = 100;
         protected const long DefaultGasLimit = 100000;
@@ -13,7 +11,7 @@ namespace GroupKnowledgeClient.Model
         protected readonly ApiClient Api;
         protected readonly Agent Agent;
 
-        protected ContractProxy(string address)
+        public ContractProxy(string address)
         {
             Api = new ApiClient();
             Agent = new();
@@ -40,14 +38,14 @@ namespace GroupKnowledgeClient.Model
             }
         }
 
-        protected async Task<object> MakeLocalCall(string methodName, ICollection<string> parameters = null)
+        public async Task<object> MakeLocalCall(string methodName, ICollection<string>? parameters = null)
         {
             var request = BuildLocalRequest(methodName, parameters);
             var response = await Api.ApiSmartContractsLocalCallPostAsync(request);
             return response.Return;
         }
 
-        protected async Task<Uint256> SendTransaction(string methodName, ICollection<string> parameters = null)
+        public async Task<Uint256> SendTransaction(string methodName, ICollection<string>? parameters = null)
         {
             var request = BuildTransactionRequest(methodName, parameters);
             var response = await Api.ApiSmartContractsBuildAndSendCallPostAsync(request);
@@ -55,14 +53,14 @@ namespace GroupKnowledgeClient.Model
             return response.TransactionId;
         }
 
-        protected async Task<object> GetTransactionResult(Uint256 transaction)
+        public async Task<object> GetTransactionResult(Uint256 transaction)
         {
             var response = await Api.ApiSmartContractsReceiptGetAsync(transaction.Value);
             if (response?.Success == null || response.Success == false) throw new ApplicationException("Transaction Failed");
             return response.ReturnValue;
         }
 
-        private LocalCallContractRequest BuildLocalRequest(string methodName, ICollection<string> parameters = null)
+        private LocalCallContractRequest BuildLocalRequest(string methodName, ICollection<string>? parameters = null)
         {
             var request = new LocalCallContractRequest
             {

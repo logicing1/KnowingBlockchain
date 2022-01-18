@@ -78,6 +78,20 @@ namespace AlgorithmTests
             Assert.Equal(expected, score);
         }
 
+        [Fact]
+        public void DefaultAnswerHash()
+        {
+            const string DEFAULT_ANSWER = "Reject question as off topic, ambiguous, unanswerable, or otherwise invalid.";
+
+            using var sha = SHA256.Create();
+            var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(DEFAULT_ANSWER));
+            var hex = Convert.ToHexString(hash).ToLower();
+            Debug.WriteLine(hash);
+            Debug.WriteLine(hex);
+            Assert.True(hex.Length == 64);
+
+        }
+
         private static int[] Scores => new[] { 0, -1, 0, 0 };
 
         private static uint TotalAnswers => (uint)Scores.Length;

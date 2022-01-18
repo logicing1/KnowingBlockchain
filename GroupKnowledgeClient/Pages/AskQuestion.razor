@@ -1,5 +1,53 @@
-﻿<h3>AskQuestion</h3>
+﻿@page "/ask/{contract}"
+@layout MainLayout
+
+@inject NavigationManager navigation;
+@inject ISnackbar snackbar;
+@inject IGroupState groupState;
+
+<MudContainer Class="d-flex justify-center align-center">
+    <MudPaper Elevation="5" Class="pa-5 mud-width-full" Style="text-align:center">
+        <MudContainer Class="d-flex flex-column justify-center">
+            <MudTextField T="string" Label="Question" @bind-Value="QuestionContent" Variant="Variant.Outlined" Lines="50"/>
+            <MudFab Icon="@Icons.Material.TwoTone.Quiz" Label="Ask Question" Size="Size.Medium" Class="align-self-center mt-6" Color="Color.Primary" @onclick="Ask" />
+        </MudContainer>
+    </MudPaper>
+</MudContainer>
 
 @code {
+    [Parameter]
+    public string Contract { get; set; } = string.Empty;
 
+    private Group Group { get; set; } = Group.Empty;
+
+    private string QuestionContent { get; set; } = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        if (groupState.Connected.TryGetValue(Contract, out var group))
+        {
+            Group = group;
+        }
+        else
+        {
+            snackbar.Add("Group Not Connected", Severity.Error);
+        }
+    }
+
+    private async Task Ask()
+    {
+        if (Group == Group.Empty)
+        {
+            return;
+        }
+        var success = await Group.Ask(QuestionContent);
+        if (success)
+        {
+            snackbar.Add("Transaction to ask question succeeded", Severity.Success);
+        }
+        else
+        {
+            snackbar.Add("Transaction to ask question failed", Severity.Error);
+        }
+    }
 }

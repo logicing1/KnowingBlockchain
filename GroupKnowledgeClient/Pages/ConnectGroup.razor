@@ -3,15 +3,15 @@
 @layout MainLayout
 
 @inject NavigationManager navigation;
+@inject ISnackbar snackbar;
 @inject IGroupState groupState;
 
 <MudContainer Class="d-flex justify-center align-center">
-    <MudPaper Elevation="5" Class="pa-5" style="text-align:center">
-        <MudContainer Class="d-flex flex-column justify-center" style="width: 450px">
-            <img src="/icon-512.png">
+    <MudPaper Elevation="5" Class="pa-5" Style="text-align:center">
+        <MudContainer Class="d-flex flex-column justify-center" Style="width: 450px">
+            <img src="/icon-512.png" alt="Group exchanging questions and answers online">
             <MudTextField Label="Group Contract Address" @bind-Value="contractAddress" Variant="Variant.Outlined"></MudTextField>
-            <MudFab Icon="@Icons.Material.TwoTone.GroupAdd" Label="Connect" Size="Size.Large" Class="align-self-center mt-6" Color="Color.Primary" @onclick="Connect" />
-            <MudIconButton Icon="@Icons.Material.Outlined.Info" Size="Size.Small" Class="mt-10 align-self-end" Color="Color.Info" />
+            <MudFab Icon="@Icons.Material.TwoTone.GroupAdd" Label="Connect" Size="Size.Medium" Class="align-self-center mt-6" Color="Color.Primary" @onclick="Connect" />
         </MudContainer>
     </MudPaper>
 </MudContainer>
@@ -19,11 +19,16 @@
 @code {
     private string contractAddress = string.Empty;
 
-    private void Connect()
+    private async Task Connect()
     {
-        var group = groupState.Connect(contractAddress);
-        groupState.Selected = default;
-        if(group != default) navigation.NavigateTo($"questions/{group.Contract}");
+        var connected = await groupState.Connect(contractAddress.Trim());
+        if (connected)
+        {
+            navigation.NavigateTo($"questions/{contractAddress}");
+        }
+        else
+        {
+            snackbar.Add("Group connection failed", Severity.Error);
+        }
     }
-
 }

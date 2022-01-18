@@ -6,27 +6,26 @@
 <MudContainer Class="d-flex justify-center align-center">
     <MudPaper Elevation="5" Class="pa-5" style="text-align:center">
         <MudContainer Class="d-flex flex-column justify-center" style="width: 450px">
-            <img src="/icon-512.png">
-            <MudSelect T=Group Label="Group Name" Placeholder="Select Group to Disconnect" Variant="Variant.Outlined"  OffsetY="true" @bind-Value="group">
-                @foreach (var group in groupState.List)
+            <img src="/icon-512.png" alt="Group exchanging questions and answers online">
+            <MudSelect T="Group" Label="Group Name" Placeholder="Select Group to Disconnect" Variant="Variant.Outlined"  OffsetY="true" @bind-Value="SelectedGroup">
+                @foreach (var group in groupState.Connected.Values)
                 {
                     <MudSelectItem Value=@group>@group.Name</MudSelectItem>
                 }
             </MudSelect>
-            <MudFab Icon="@Icons.Material.Filled.GroupRemove" Label="Disconnect" Size="Size.Large" Class="align-self-center mt-6" Color="Color.Warning" @onclick="Disconnect" />
-            <MudIconButton Icon="@Icons.Material.TwoTone.HelpOutline" Size="Size.Small" Class="mt-10 align-self-end" Color="Color.Info" />
+            <MudFab Icon="@Icons.Material.TwoTone.GroupRemove" Label="Disconnect" Size="Size.Medium" Class="align-self-center mt-6" Color="Color.Warning" @onclick="Disconnect" />
         </MudContainer>
     </MudPaper>
 </MudContainer>
 
 @code {
-    private Group? group = default;
+    private Group SelectedGroup { get; set; } = Group.Empty;
 
     private void Disconnect()
     {
-        if (group == default) return;
-        groupState.Disconnect(group);
-        group = default;
+        if (SelectedGroup == Group.Empty) return;
+        groupState.Disconnect(SelectedGroup);
+        SelectedGroup = Group.Empty;
         StateHasChanged();
     }
 

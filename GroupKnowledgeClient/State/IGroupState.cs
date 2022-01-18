@@ -4,13 +4,15 @@ namespace GroupKnowledgeClient.State
 {
     public interface IGroupState
     {
-        IList<Group> List { get; set; }
+        IDictionary<string, Group> Connected { get; }
 
         Group? Selected { get; set; }
 
-        event Action? Changed;
+        event Func<Task>? Changed;
 
-        Group? Connect(string contract);
+        Question SelectQuestion(string address);
+
+        Task<bool> Connect(string groupAddress);
 
         void Disconnect(Group group);
     }

@@ -1,6 +1,6 @@
 ﻿@using GroupKnowledgeClient.State
 
-@inject IGroupState _groupState;
+@inject IGroupState groupState;
 @implements IDisposable;
 
 <MudToolBar Class="justify-center">
@@ -13,23 +13,38 @@
 </MudToolBar>
 <MudDivider Class="mb-3" />
 <MudNavMenu>
-    @foreach (var group in _groupState.List.OrderBy(g => g.Name))
+    @foreach (var group in groups.OrderBy(g => g.Name))
     {
-        var link = $"/questions/{group.Contract}";
+        var link = $"/questions/{group.Address}";
         <MudNavLink Href=@link Match="NavLinkMatch.Prefix" Icon="@Icons.Material.TwoTone.Group">@group.Name</MudNavLink>
     }
 </MudNavMenu>
 
 @code {
-
-    protected override void OnInitialized()
-    {
-        _groupState.Changed += StateHasChanged;
-    }
+    private IList<Group> groups;
 
     public void Dispose()
     {
-        _groupState.Changed -= StateHasChanged;
+        groupState.Changed -= Refresh;
     }
 
+    protected override void OnInitialized()
+    {
+        groupState.Changed += Refresh;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await Refresh();
+    }
+
+    private async Task Refresh()
+    {
+        groups = groupState.Connected.Values.ToList();
+        foreach (var item in groups)
+        {
+            await item.LoadName();
+        }
+        StateHasChanged();
+    }
 } 

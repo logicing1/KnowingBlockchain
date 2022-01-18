@@ -1,22 +1,52 @@
-﻿<MudCard Elevation="1">
+﻿@inject IGroupState groupState;
+
+<MudCard Elevation="1">
     <MudCardHeader>
         <CardHeaderAvatar>
-            <MudIcon Icon="@Icons.Material.TwoTone.QuestionAnswer" Color="Color.Secondary" Size="Size.Small" Square="true"/>
+            <div class="d-flex">
+                <MudIcon Icon="@Icons.Material.TwoTone.QuestionAnswer" Color="Color.Secondary" Size="Size.Small" />
+                <MudText Typo="Typo.subtitle2" Class="ml-2">Answer @Answer.Index</MudText>
+            </div>
         </CardHeaderAvatar>
     </MudCardHeader>
     <MudCardContent>
-        <MudText Typo="Typo.body1">@Content</MudText>
+        <MudText Typo="Typo.body1">@Answer.Content</MudText>
     </MudCardContent>
-    <MudCardActions Style="justify-content:right">
-        <MudTooltip Text="See Answers" Color="Color.Secondary">
-            <MudIconButton Icon="@Icons.Material.TwoTone.QuestionAnswer" Color="Color.Primary"/>
-        </MudTooltip>
+    <MudCardActions Style="justify-content: center">
+        @if (IsMember)
+        {
+            <MudTooltip Text="@($"Rank 1 best to {TotalAnswers} worst. 0 means indifferent. Ties permitted.")" Color="Color.Secondary">
+                <div class="d-flex">
+                    <MudSlider Disabled="@Indifferent" T="uint" Step="1" Min="1" Max="@TotalAnswers" @bind-Value="@Answer.Rank">
+                        <MudText Typo="Typo.h6" Color="Color.Primary" Align="Align.Center">Rank: @Answer.Rank.ToString()</MudText>
+                    </MudSlider>
+                    <MudSwitch @bind-Checked="@Indifferent" Label="Indifferent" Color="Color.Primary" Class="ml-5" @onclick="ToggleRanking"></MudSwitch>
+                </div>
+            </MudTooltip>
+        }
     </MudCardActions>
 </MudCard>
 
 @code {
+    [Parameter]
+    public Answer Answer { get; set; } = Answer.Empty;
 
-    [Parameter] 
-    public string? Content { get; set; }
+    [Parameter]
+    public uint TotalAnswers { get; set; } = 0;
+
+    private bool Indifferent { get; set; } = false;
+
+    private bool IsMember => groupState?.Selected?.Balance > 0;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await Answer.LoadContent();
+        if (Answer.Rank == 0) Indifferent = true;
+    }
+
+    private void ToggleRanking()
+    {
+        Answer.Rank = Indifferent ? TotalAnswers : 0;
+    }
 
 }

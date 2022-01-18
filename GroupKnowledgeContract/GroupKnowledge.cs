@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -12,23 +13,21 @@ namespace GroupKnowledge.Contract
     {
         private const ulong MIN_MEMBERSHIP_FEE = 1000000;
         private const ulong ASK_INTERVAL = 100;
-        private const int MIN_GROUPNAME_LENGTH = 5;
-        private const int MAX_GROUPNAME_LENGTH = 50;
-        private const int MIN_QUESTION_LENGTH = 100;
-        private const int MAX_QUESTION_LENGTH = 5000;
+        private const int MIN_GROUP_NAME_LENGTH = 5;
+        private const int MAX_GROUP_NAME_LENGTH = 50;
         private const int ANSWER_REWARD_FACTOR = 4;
 
         public GroupKnowledge(ISmartContractState contractState, string groupName) : base(contractState)
         {
             groupName = groupName?.Trim() ?? string.Empty;
-            Assert(groupName.Length >= MIN_GROUPNAME_LENGTH && groupName.Length <= MAX_GROUPNAME_LENGTH, $"Group name must be between {MIN_GROUPNAME_LENGTH} and {MAX_GROUPNAME_LENGTH}.");
+            Assert(groupName.Length >= MIN_GROUP_NAME_LENGTH && groupName.Length <= MAX_GROUP_NAME_LENGTH, $"Group name must be between {MIN_GROUP_NAME_LENGTH} and {MAX_GROUP_NAME_LENGTH}.");
             GroupName = groupName;
             Assert(Message.Value >= MIN_MEMBERSHIP_FEE, $"The group's membership fee must be at least {MIN_MEMBERSHIP_FEE}.");
-            MembershipFee = Message.Value;
+            GroupMembershipFee = Message.Value;
             SetMemberBalance(Message.Sender, Message.Value);
             TotalMembers++;
             TokenBalance = Message.Value;
-            VoterReward = MembershipFee / MIN_MEMBERSHIP_FEE;
+            VoterReward = GroupMembershipFee / MIN_MEMBERSHIP_FEE;
             AnswererReward = VoterReward * ANSWER_REWARD_FACTOR;
         }
 
@@ -38,10 +37,10 @@ namespace GroupKnowledge.Contract
             init => State.SetString(nameof(GroupName), value);
         }
 
-        private ulong MembershipFee
+        private ulong GroupMembershipFee
         {
-            get => State.GetUInt64(nameof(MembershipFee));
-            init => State.SetUInt64(nameof(MembershipFee), value);
+            get => State.GetUInt64(nameof(GroupMembershipFee));
+            init => State.SetUInt64(nameof(GroupMembershipFee), value);
         }
 
         private ulong VoterReward
@@ -88,10 +87,16 @@ namespace GroupKnowledge.Contract
 
         public string Name() => GroupName;
 
+        public ulong MembershipFee() => GroupMembershipFee;
+
+        public uint MembershipSize() => TotalMembers;
+
+        public bool IsMember(Address memberAddress) => GetMemberBalance(memberAddress) > 0;
+
         public void Join()
         {
             Assert(IsMember(Message.Sender), "Already a member.");
-            Assert(Message.Value >= MembershipFee, $"There is a minimum membership fee of {MembershipFee} to join the group.");
+            Assert(Message.Value >= GroupMembershipFee, $"There is a minimum membership fee of {GroupMembershipFee} to join the group.");
             SetMemberBalance(Message.Sender, checked(TokenBalance * Message.Value) / Balance);
             TokenBalance += GetMemberBalance(Message.Sender);
             TotalMembers++;
@@ -106,18 +111,14 @@ namespace GroupKnowledge.Contract
             if (GetMemberBalance(Message.Sender) == 0) TotalMembers--;
         }
 
-        public bool IsMember(Address memberAddress) => GetMemberBalance(memberAddress) > 0;
 
-        public uint MembershipSize() => TotalMembers;
-
-        public string Ask(string questionCid)
+        public void Ask(string questionCid)
         {
             Assert(Block.Number - LastAskBlock > ASK_INTERVAL, $"Only one question can be asked every {ASK_INTERVAL} blocks.");
             var result = Create<GroupKnowledgeQuestion>(0, new object[] { Address, questionCid });
             Assert(result.Success, "Failed to create a contract for the question asked.");
-            SetQuestion(++TotalAsked, questionCid, result.NewContractAddress);
-            SetUnanswered(++TotalUnanswered, questionCid);
-            return result.NewContractAddress.ToString();
+            SetQuestion(++TotalAsked, result.NewContractAddress);
+            SetUnanswered(++TotalUnanswered, result.NewContractAddress);
         }
 
         public string ListAsked()
@@ -125,7 +126,7 @@ namespace GroupKnowledge.Contract
             var asked = new string[TotalAsked];
             for (var index = 0u; index < TotalAsked; index++)
             {
-                asked[index] = GetAsked(index);
+                asked[index] = GetAsked(index).ToString();
             }
             return string.Join(',', asked);
         }
@@ -135,59 +136,53 @@ namespace GroupKnowledge.Contract
             var unanswered = new string[TotalUnanswered];
             for (var index = 0u; index < TotalUnanswered; index++)
             {
-                unanswered[index] = GetUnanswered(index);
+                unanswered[index] = GetUnanswered(index).ToString();
             }
             return string.Join(',', unanswered);
         }
 
-        public void Voted(string questionCid, Address voter)
+        public void Voted(Address voter)
         {
-            Assert(Message.Sender == GetQuestionAddress(questionCid), "Only the question contract can report a vote.");
+            var index = GetQuestionIndex(Message.Sender);
+            Assert(GetUnanswered(index) == Message.Sender, "Not an unanswered question.");
             Assert(GetMemberBalance(voter) > 0, "Voter is not a current group member.");
             SetMemberBalance(voter, GetMemberBalance(voter) + VoterReward);
         }
 
-        public void Answered(Address answerer, string cid)
+        public void Answered(Address answerer)
         {
-            Assert(Message.Sender == GetQuestionAddress(cid), "Only the question contract can report an answer.");
             var index = GetQuestionIndex(Message.Sender);
-            Assert(GetUnanswered(index) == cid, "Not an unanswered question.");
+            Assert(GetUnanswered(index) == Message.Sender, "Not an unanswered question.");
             ClearUnanswered(index);
             Assert(GetMemberBalance(answerer) > 0, "Answerer is not a current group member.");
             SetMemberBalance(answerer, GetMemberBalance(answerer) + AnswererReward);
         }
 
-        private void SetQuestion(uint index, string cid, Address contractAddress)
+        private void SetQuestion(uint index, Address questionAddress)
         {
-            SetAsked(index, cid);
-            SetQuestionAddress(cid, contractAddress);
-            SetQuestionIndex(Address, index);
+            SetAsked(index, questionAddress);
+            SetQuestionIndex(questionAddress, index);
         }
 
         private ulong GetMemberBalance(Address member) => State.GetUInt64($"Member:{member}:Balance");
         private void SetMemberBalance(Address member, ulong value) => State.SetUInt64($"Member:{member}:Balance", value);
 
-        private Address GetQuestionAddress(string cid) => State.GetAddress($"Question:{cid}:Address");
-        private void SetQuestionAddress(string cid, Address questionAddress) => State.SetAddress($"Question:{cid}:Address", Address);
-
         private uint GetQuestionIndex(Address questionAddress) => State.GetUInt32($"Question:{questionAddress}:Index");
         private void SetQuestionIndex(Address questionAddress, uint index) => State.SetUInt32($"Question:{questionAddress}:Index", index);
 
-        private string GetAsked(uint index) => State.GetString($"Asked:{index}");
-        private void SetAsked(uint index, string cid) => State.SetString($"Asked:{index}", cid);
+        private Address GetAsked(uint index) => State.GetAddress($"Asked:{index}");
+        private void SetAsked(uint index, Address questionAddress) => State.SetAddress($"Asked:{index}", questionAddress);
 
-        private string GetUnanswered(uint index) => State.GetString($"Unanswered:{index}:CID");
-        private void SetUnanswered(uint index, string cid) => State.SetString($"Unanswered:{index}:CID", cid);
-        private void ClearUnanswered(uint index) => State.Clear($"Unanswered:{index}:CID");
+        private Address GetUnanswered(uint index) => State.GetAddress($"Unanswered:{index}");
+        private void SetUnanswered(uint index, Address questionAddress) => State.SetAddress($"Unanswered:{index}", questionAddress);
+        private void ClearUnanswered(uint index) => State.Clear($"Unanswered:{index}");
     }
 
 
 
     public class GroupKnowledgeQuestion : SmartContract
     {
-        private const string DEFAULT_ANSWER = "Reject question as off topic, ambiguous, unanswerable, or otherwise invalid.";
-        private const int MIN_ANSWER_LENGTH = 100;
-        private const int MAX_ANSWER_LENGTH = 1000;
+        private const string DEFAULT_ANSWER_CID_HEX = "0c312d1b5bb15fe25cda31f823a14f26aaa8981a524d92ba69069e684b85839e"; //"Reject question as off topic, ambiguous, unanswerable, or otherwise invalid.";
         private const ulong FULL_PARTICIPATION_REQUIRED_PERIOD = 5000;
         private const ulong PARTICIPATION_REQUIREMENT_REDUCTION_INTERVAL = 1000;
         private const uint MIN_PARTICIPATION_PERCENT = 25;
@@ -197,10 +192,10 @@ namespace GroupKnowledge.Contract
         {
             Assert(question.Length == 32, "A valid hash of the question is required.");
             Group = Message.Sender;
-            QuestionHash = question;
+            QuestionCid = question;
             ParticipationRequirement = MIN_PARTICIPATION_PERCENT;
-            var defaultAnswerHash = Keccak256(Serializer.Serialize(DEFAULT_ANSWER));
-            SetAnswer(++TotalAnswers, defaultAnswerHash, Address, int.MaxValue);
+            var defaultAnswerCid = HexStringToBytes(DEFAULT_ANSWER_CID_HEX);
+            SetAnswer(++TotalAnswers, Serializer.Serialize(defaultAnswerCid), Address, int.MaxValue);
             StartBlock = Block.Number;
         }
 
@@ -210,10 +205,10 @@ namespace GroupKnowledge.Contract
             init => State.SetAddress(nameof(Group), value);
         }
 
-        private byte[] QuestionHash
+        private byte[] QuestionCid
         {
-            get => State.GetBytes(nameof(QuestionHash));
-            init => State.SetBytes(nameof(QuestionHash), value);
+            get => State.GetBytes(nameof(QuestionCid));
+            init => State.SetBytes(nameof(QuestionCid), value);
         }
 
         private ulong StartBlock
@@ -240,23 +235,19 @@ namespace GroupKnowledge.Contract
             set => State.SetInt32(nameof(TotalVotes), value);
         }
 
-        private byte[] BestAnswerHash
+        private byte[] BestAnswerCid
         {
-            get => State.GetBytes(nameof(BestAnswerHash));
-            set => State.SetBytes(nameof(BestAnswerHash), value);
+            get => State.GetBytes(nameof(BestAnswerCid));
+            set => State.SetBytes(nameof(BestAnswerCid), value);
         }
 
-        public string Question() => Serializer.ToString(QuestionHash);
+        public byte[] CID() => QuestionCid;
 
-        public string ProposeAnswer(string answer)
+        public void ProposeAnswer(byte[] cid)
         {
             var membershipCheckResult = Call(Group, 0, "IsMember");
             Assert(membershipCheckResult.Success && (bool)membershipCheckResult.ReturnValue == true, "Must be group member to propose an answer.");
-            answer = answer?.Trim() ?? string.Empty;
-            Assert(answer.Length >= MIN_ANSWER_LENGTH && answer.Length <= MAX_ANSWER_LENGTH, $"Answer length must be between {MIN_ANSWER_LENGTH} and {MAX_ANSWER_LENGTH}.");
-            var hash = Keccak256(Serializer.Serialize(answer));
-            SetAnswer(++TotalAnswers, hash, Message.Sender, 0);
-            return Serializer.ToString(hash);
+            SetAnswer(++TotalAnswers, cid, Message.Sender, 0);
         }
 
         public string ListAnswers()
@@ -264,22 +255,24 @@ namespace GroupKnowledge.Contract
             var asked = new string[TotalAnswers];
             for (var index = 0u; index < TotalAnswers; index++)
             {
-                asked[index] = Serializer.ToString(GetAnswerHash(index));
+                asked[index] = Serializer.ToString(GetAnswer(index));
             }
             return string.Join(',', asked);
         }
+
+        public string VoterVote() => string.Join(',', GetVoterVote(Message.Sender));
 
         public void Vote(string ballot)
         {
             var vote = ReadBallot(ballot);
             var isRollback = TryRollback();
             ApplyAnswerRankings(vote);
-            if (!isRollback && BestAnswerHash.Length == 0) RewardVote();
+            if (!isRollback && BestAnswerCid.Length == 0) RewardVote();
             TotalVotes++;
             if (ParticipationRequirementMet()) FindBestAnswer();
         }
 
-        public string BestAnswer() => Serializer.ToString(BestAnswerHash);
+        public string BestAnswer() => Serializer.ToString(BestAnswerCid);
 
         private int[] ReadBallot(string ballot)
         {
@@ -355,7 +348,7 @@ namespace GroupKnowledge.Contract
             }
             if (scores.Length > 1 && scores[0] == scores[1]) return; //Tie, no best answer yet
             if (!RewardAnswer(rankedAnswers[0])) return; //Failed to reward as expected so don't resolve yet 
-            BestAnswerHash = GetAnswerHash(rankedAnswers[0]);
+            BestAnswerCid = GetAnswer(rankedAnswers[0]);
             ResetVoting();
         }
 
@@ -367,9 +360,9 @@ namespace GroupKnowledge.Contract
 
         private bool RewardAnswer(uint answerIndex)
         {
-            if (BestAnswerHash.Length > 0) return true; //Someone already rewarded
+            if (BestAnswerCid.Length > 0) return true; //Someone already rewarded
             var bestAnswerAuthor = GetAnswerAuthor(answerIndex);
-            var result = Call(Group, 0, "Answered", new object[] { QuestionHash, bestAnswerAuthor });
+            var result = Call(Group, 0, "Answered", new object[] { bestAnswerAuthor });
             return result.Success;
         }
 
@@ -380,19 +373,31 @@ namespace GroupKnowledge.Contract
             TotalVotes = 0;
         }
 
-        private void SetAnswer(uint index, byte[] hash, Address author, int score)
+        private void SetAnswer(uint index, byte[] cid, Address author, int score)
         {
-            SetAnswerIndex(hash, index);
-            SetAnswerHash(index, hash);
+            SetAnswerIndex(cid, index);
+            SetAnswer(index, cid);
             SetAnswerAuthor(index, author);
             SetAnswerScore(index, score);
         }
 
-        private uint GetAnswerIndex(byte[] hash) => State.GetUInt32($"Answer:{hash}:Index");
-        private void SetAnswerIndex(byte[] hash, uint index) => State.SetUInt32($"Answer:{hash}:Index", index);
+        private static byte[] HexStringToBytes(string hex)
+        {
+            var bytes = new byte[hex.Length / 2];
+            for (var i = 0; i < hex.Length; i += 2)
+            {
+                var hexChars = hex.Substring(i, 2);
+                bytes[i / 2] = byte.Parse(hexChars, System.Globalization.NumberStyles.HexNumber);
+            }
+            return bytes;
+        }
 
-        private byte[] GetAnswerHash(uint index) => State.GetBytes($"Answer:{index}:Hash");
-        private void SetAnswerHash(uint index, byte[] hash) => State.SetBytes($"Answer:{index}:Hash", hash);
+
+        private uint GetAnswerIndex(byte[] cid) => State.GetUInt32($"Answer:{cid}:Index");
+        private void SetAnswerIndex(byte[] cid, uint index) => State.SetUInt32($"Answer:{cid}:Index", index);
+
+        private byte[] GetAnswer(uint index) => State.GetBytes($"Answer:{index}");
+        private void SetAnswer(uint index, byte[] cid) => State.SetBytes($"Answer:{index}", cid);
 
         private Address GetAnswerAuthor(uint index) => State.GetAddress($"Answer:{index}:Author");
         private void SetAnswerAuthor(uint index, Address author) => State.SetAddress($"Answer:{index}:Author", author);

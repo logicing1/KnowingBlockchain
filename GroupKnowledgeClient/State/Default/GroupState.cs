@@ -11,26 +11,30 @@ namespace GroupKnowledgeClient.State.Default
         public GroupState(ILocalStorage storage)
         {
             this.storage = storage;
-            List = storage.Groups;
-            Selected = default;
         }
 
-        public event Action? Changed;
-
-        public IList<Group> List { get; set; }
+        public event Func<Task>? Changed;
 
         public Group? Selected { get; set; }
 
-        public Group? Connect(string contract)
+        public IDictionary<string, Group> Connected { get; } = new Dictionary<string, Group>();
+
+        public Question SelectQuestion(string address) => Selected?.Questions.SingleOrDefault(q => q.Address == address) ?? Question.Empty;
+
+        public async Task<bool> Connect(string groupAddress)
         {
-            var group = new Group(contract);
+            var group = new Group(groupAddress);
+            await group.LoadName();
+            await group.LoadBalance();
+            if(group.Name == string.Empty) return false;
+            Connected.Add(groupAddress, group);
             NotifyChanged();
-            return group;
+            return true;
         }
 
         public void Disconnect(Group group)
         {
-            List.Remove(group);
+            Connected.Remove(group.Address);
             NotifyChanged();
         }
 

@@ -1,28 +1,65 @@
-﻿@page "/answers/{questionNumber}/{GroupName}"
+﻿@page "/rank/{contract}"
+@layout MainLayout
+
+@inject IGroupState groupState;
 
 <MudToolBar>
-    <MudText Typo="Typo.h4">@GroupName</MudText>
     <MudSpacer />
-    <MudFab Color="Color.Primary" Icon="@Icons.Material.Filled.AddComment" IconSize="Size.Small" Label="Propose Answer" Class="mb-4" />
-</MudToolBar>
-<MudDivider Class="mb-5"/>
-<MudGrid>
-    @foreach (var answer in Answers)
+    @if (IsMember)
     {
-        <MudItem xs="12" sm="8">
-            <AnswerCard Content="@answer" /> 
+        <MudTooltip Text="Propose another answer to the question." Color="Color.Secondary">
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.TwoTone.AddComment" Size="Size.Medium" Link="@($"/answer/{@Question.Address}")">New Answer</MudButton>
+        </MudTooltip>
+        <MudTooltip Text="Submit your ranking of the answers." Color="Color.Secondary">
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.TwoTone.HowToVote" Size="Size.Medium" OnClick="@Vote" Class="ml-5">Vote Ranks</MudButton>
+        </MudTooltip>
+    }
+</MudToolBar>
+<MudDivider Class="mb-5" />
+<MudGrid>
+    <MudItem xs="12">
+        <MudExpansionPanel>
+            <TitleContent>
+                <div class="d-flex">
+                    <MudIcon Icon="@Icons.Material.TwoTone.Quiz" Size="Size.Large" Color="Color.Secondary" />
+                    <MudText Color="Color.Secondary" Typo="Typo.h6" Class="ml-2">Question @Question.Index</MudText>
+                </div>
+            </TitleContent>
+            <ChildContent>
+                <MudText Typo="Typo.body2">@Question.Content</MudText>
+            </ChildContent>
+        </MudExpansionPanel>
+    </MudItem>
+    @foreach (var answer in Question.Answers)
+    {
+        <MudItem xl="4" lg="6" md="12">
+            <AnswerCard Answer="@answer" TotalAnswers="@TotalAnswers" />
         </MudItem>
     }
 </MudGrid>
 
 @code {
 
-    [Parameter] 
-    public string? GroupName { get; set; }
+    [Parameter]
+    public string Contract { get; set; } = string.Empty;
 
-    private string[] Answers = new[]
+    private Question Question { get; set; } = Question.Empty;
+
+    private uint TotalAnswers { get; set; } = 0;
+
+    private bool IsMember => groupState?.Selected?.Balance > 0;
+
+    protected override async Task OnParametersSetAsync()
     {
-        "Why did the chicken cross the road?",
-        "Where does the rain in Spain mainly fall?"
-    };
+        Question = groupState.SelectQuestion(Contract);
+        await Question.LoadAnswers();
+        await Question.LoadVote();
+        TotalAnswers = (uint)Question.Answers.Count();
+    }
+
+    private async Task Vote()
+    {
+
+    }
+
 }

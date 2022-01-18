@@ -1,7 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json;
 
-namespace Logicing.Deciding.StratisClient
+namespace Logicing.Knowing.StratisClient
 {
     public class MoneyConverter : JsonConverter
     {
