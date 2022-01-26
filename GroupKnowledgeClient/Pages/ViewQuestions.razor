@@ -1,4 +1,4 @@
-﻿@page "/questions/{contract}"
+﻿ @page "/questions/{contract}"
 @layout MainLayout
 
 @inject NavigationManager navigation;
@@ -15,14 +15,18 @@
     }
 </MudToolBar>
 <MudDivider Class="mb-5" />
-<MudGrid>
-    @foreach (var question in Group.Questions)
-    {
-        <MudItem xl="4" lg="6" md="12">
-            <QuestionCard Question="@question" />
-        </MudItem>
-    }
-</MudGrid>
+ <MudGrid>
+     @if (!Group.Questions.Any())
+     {
+         <MudText Typo="Typo.h6">No Questions have been asked yet.</MudText>
+     }
+     @foreach (var question in Group.Questions)
+     {
+         <MudItem xl="4" lg="6" md="12">
+             <QuestionCard Question="@question"/>
+         </MudItem>
+     }
+ </MudGrid>
 
 @code {
 
@@ -31,21 +35,14 @@
 
     private Group Group { get; set; } = Group.Empty;
 
-    private bool IsMember => Group.Balance > 0;
+    private bool IsMember => Group.MemberBalance > 0;
 
     protected override async Task OnParametersSetAsync()
     {
-        var connected = groupState.Connected.TryGetValue(Contract, out var group);
-        if (connected && group != null)
-        {
-            Group = group;
-            groupState.Selected = group;
-            await Group.Load();
-        }
-        else
-        {
+        await groupState.Select(Contract);
+        Group = groupState.Selected ?? Group.Empty;
+        if(Group == Group.Empty)
             snackbar.Add("Group Not Connected", Severity.Error);
-        }
     }
 
 }

@@ -1,35 +1,39 @@
 ﻿using System.Data;
 using System.Diagnostics;
 using GroupKnowledgeClient.Services;
-using GroupKnowledgeClient.Services.SampleData;
+using GroupKnowledgeClient.Services.Default;
 using Stratis.SmartContracts;
+using System.Net.Http.Json;
+
 
 namespace GroupKnowledgeClient.Model
 {
     public class Group
     {
-        public static Group Empty { get; } = new(string.Empty);
+        public static Group Empty { get; } = new(string.Empty, Agent.Empty);
 
         public static async Task<string> Establish(string name, ulong membershipFee)
         {
             throw new NotImplementedException();
         }
 
-        private readonly ContractProxy contract;
-        private bool withdrawn = false;
+        private readonly CirrusApi contract;
+        private readonly Agent agent;
 
-        public Group(string contractAddress)
+        public Group(string contractAddress, Agent agent, string? name = default)
         {
-            contract = new ContractProxy(contractAddress);
+            this.agent = agent;
+            contract = new CirrusApi(contractAddress);
+            Name = name ?? string.Empty;
         }
 
         public string Address => contract.Address;
 
-        public string Name { get; private set; } = string.Empty;
+        public string Name { get; private set; }
 
         public ulong MembershipFee { get; private set; } = 0;
 
-        public ulong Balance { get; private set; }
+        public ulong MemberBalance { get; private set; } = 0;
 
         public IList<Question> Questions { get; private set; } = new List<Question>();
 
@@ -43,49 +47,57 @@ namespace GroupKnowledgeClient.Model
         public async Task LoadName()
         {
             if (Name != string.Empty) return;
-            var response = await contract.MakeLocalCall(nameof(Name)) ?? string.Empty;
-            Name = response.ToString() ?? string.Empty;
+            var response = await contract.MakeLocalCall(agent, nameof(Name));
+            if(!response.HasValue)
+                return;
+            Name = response.Value.GetString() ?? string.Empty;
         }
 
         public async Task LoadMembershipFee()
         {
-            var response = await contract.MakeLocalCall(nameof(MembershipFee)) ?? 0;
-            MembershipFee = (ulong)response;
+            var response = await contract.MakeLocalCall(agent, nameof(MembershipFee));
+            if(!response.HasValue)
+                return;
+            MembershipFee = response.Value.TryGetUInt64(out var fee) ? fee : 0;
+                
         }
 
         public async Task LoadBalance()
         {
-            if (Balance > 0 || withdrawn) return;
-            var response = await contract.MakeLocalCall(nameof(Balance)) ?? 0;
-            Balance = (ulong)response;
+            var response = await contract.MakeLocalCall(agent, nameof(MemberBalance));
+            if (!response.HasValue)
+                return;
+            MemberBalance = response.Value.TryGetUInt64(out var fee) ? fee : 0;
         }
 
         public async Task LoadQuestions()
         {
             var questions = new List<Question>();
-            var response = await contract.MakeLocalCall(nameof(Questions)) ?? string.Empty;
-            var delimitedAddresses = response.ToString();
-            if (string.IsNullOrEmpty(delimitedAddresses)) return;
+            var response = await contract.MakeLocalCall(agent, nameof(Questions));
+            if (!response.HasValue)
+                return;
+            var delimitedAddresses = response.Value.ToString();
+            if (string.IsNullOrEmpty(delimitedAddresses)) 
+                return;
             var questionAddresses = delimitedAddresses.Split(',');
             var index = 0;
-            questions.AddRange(questionAddresses.Select(address => new Question(address, index++)));
+            questions.AddRange(questionAddresses.Select(address => new Question(address, index++, agent)));
             Questions = questions;
         }
 
-        public async Task<bool> Join(ulong fee)
+        public async Task<bool> Join(ulong fee, string password)
         {
-            Balance = fee;
+            MemberBalance = fee;
             return true;
         }
 
-        public async Task<bool> Withdraw(ulong tokens)
+        public async Task<bool> Withdraw(ulong tokens, string password)
         {
-            Balance = 0;
-            withdrawn = true;
+            MemberBalance = 0;
             return true;
         }
 
-        public async Task<bool> Ask(string content)
+        public async Task<bool> Ask(string content, string password)
         {
             return true;
         }

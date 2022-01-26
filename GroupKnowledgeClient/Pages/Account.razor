@@ -1,0 +1,46 @@
+﻿@page "/"
+@page "/account"
+@using GroupKnowledgeClient.Services.Default
+@layout MainLayout
+
+@inject NavigationManager navigation;
+@inject ISnackbar snackbar;
+@inject IGroupState groupState;
+@inject IAgentState agentState;
+
+<MudContainer Class="d-flex justify-center align-center">
+    <MudPaper Elevation="5" Class="pa-5" Style="text-align:center">
+        <MudContainer Class="d-flex flex-column justify-center" Style="width: 450px">
+            <img src="/icon-512.png" alt="Group exchanging questions and answers online">
+            <MudTextField Label="Wallet Name" @bind-Value="Agent.Wallet" Variant="Variant.Outlined" Class="ma-2"></MudTextField>
+            <MudTextField Label="Account Address" @bind-Value="Agent.Address" Variant="Variant.Outlined" Class="ma-2"></MudTextField>
+            <MudNumericField Label="Gas Price To Offer" @bind-Value="Agent.GasPrice" Variant="Variant.Outlined" Class="ma-2"></MudNumericField>
+            <MudNumericField Label="Gas Limit on Transactions" @bind-Value="Agent.GasLimit" Variant="Variant.Outlined" Class="ma-2"></MudNumericField>
+            <MudFab Icon="@Icons.Material.TwoTone.GroupAdd" Label="Confirm" Size="Size.Medium" Class="align-self-center mt-6" Color="Color.Primary" @onclick="Confirm" />
+        </MudContainer>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private Agent Agent { get; set; } = Agent.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (agentState.ActiveAgent == Agent.Empty) await agentState.Load();
+        Agent = agentState.ActiveAgent;
+    }
+
+    private async void Confirm()
+    {
+        await agentState.Save(Agent);
+        if (groupState.Connected.Any())
+        {
+            var contract = groupState.Connected.First().Key;
+            navigation.NavigateTo($"/questions/{contract}");
+        }
+        else
+        {
+            navigation.NavigateTo("/connect");
+        };
+    }
+}

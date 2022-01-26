@@ -3,6 +3,7 @@
 
 @inject NavigationManager navigation;
 @inject ISnackbar snackbar;
+@inject IDialogService dialogService;
 @inject IGroupState groupState;
 
 <MudContainer Class="d-flex justify-center align-center">
@@ -35,7 +36,7 @@
 
     protected override void OnParametersSet()
     {
-        Question = groupState.SelectQuestion(Contract);
+        Question = groupState.SelectedQuestion(Contract);
         if (Question == Question.Empty)
         {
             snackbar.Add("Unknown Question", Severity.Error);
@@ -44,7 +45,15 @@
 
     private async Task Answer()
     {
-        var success = await Question.Answer(AnswerContent);
+        var dialog = dialogService.Show<PasswordDialog>();
+        var result = await dialog.Result;
+        var password = result.Data.ToString() ?? string.Empty;
+        if (password == string.Empty)
+        {
+            snackbar.Add("Password not provided", Severity.Warning);
+            return;
+        }
+        var success = await Question.Answer(AnswerContent, password);
         if (success)
         {
             snackbar.Add("Transaction to answer question succeeded", Severity.Success);

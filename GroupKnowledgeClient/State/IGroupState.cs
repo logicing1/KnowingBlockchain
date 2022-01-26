@@ -6,14 +6,18 @@ namespace GroupKnowledgeClient.State
     {
         IDictionary<string, Group> Connected { get; }
 
-        Group? Selected { get; set; }
+        Group? Selected { get; }
 
         event Func<Task>? Changed;
 
-        Question SelectQuestion(string address);
+        Task Load();
+
+        Task Select(string address);
+
+        Question SelectedQuestion(string address);
 
         Task<bool> Connect(string groupAddress);
 
-        void Disconnect(Group group);
+        Task Disconnect(Group group);
     }
 }

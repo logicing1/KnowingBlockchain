@@ -1,0 +1,52 @@
+﻿@inherits LayoutComponentBase
+
+@inject IDialogService dialogService
+@inject NavigationManager navigation;
+@inject IGroupState groupState
+@inject IAgentState agentState
+
+@implements IDisposable;
+
+<MudToolBar DisableGutters="true" Dense="true">
+    <MudIconButton Icon="@Icons.Material.Outlined.Menu" Color="Color.Primary" OnClick="@DrawerControl" Class="ml-3" />
+    <MudText Typo="Typo.h5">@SelectedGroup.Name</MudText>
+    <MudSpacer />
+    @if (SelectedGroup != Group.Empty && IsMember)
+    {
+        <MudTooltip Text="Withdraw Tokens" Color="Color.Secondary">
+            <MudIconButton Icon="@Icons.Material.TwoTone.GeneratingTokens" Size="Size.Large" Color="Color.Primary" Link="@($"/withdraw/{@SelectedGroup.Address}")" />
+        </MudTooltip>
+    }
+    else if (SelectedGroup != Group.Empty)
+    {
+        <MudTooltip Text="Join Group" Color="Color.Secondary">
+            <MudIconButton Icon="@Icons.Material.TwoTone.AccountCircle" Size="Size.Large" Color="Color.Primary" Link="@($"/join/{@SelectedGroup.Address}")" />
+        </MudTooltip>
+    }
+</MudToolBar>
+
+@code {
+    [Parameter]
+    public Action DrawerControl { get; set; } = null!;
+
+    private Group SelectedGroup => groupState.Selected ?? Group.Empty;
+
+    private string GroupName => groupState?.Selected?.Name ?? string.Empty;
+
+    private bool IsMember => SelectedGroup.MemberBalance > 0;
+
+    public void Dispose()
+    {
+        groupState.Changed -= Refresh;
+    }
+
+    protected override void OnInitialized()
+    {
+        groupState.Changed += Refresh;
+    }
+
+    private async Task Refresh()
+    {
+        StateHasChanged();
+    }
+}

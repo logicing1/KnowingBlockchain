@@ -47,11 +47,11 @@
 
     private uint TotalAnswers { get; set; } = 0;
 
-    private bool IsMember => groupState?.Selected?.Balance > 0;
+    private bool IsMember => groupState?.Selected?.MemberBalance > 0;
 
     protected override async Task OnParametersSetAsync()
     {
-        Question = groupState.SelectQuestion(Contract);
+        Question = groupState.SelectedQuestion(Contract);
         await Question.LoadAnswers();
         await Question.LoadVote();
         TotalAnswers = (uint)Question.Answers.Count();

@@ -1,16 +1,17 @@
 ﻿@page "/disconnect"
 @layout MainLayout
 
+@inject NavigationManager navigation;
 @inject IGroupState groupState;
 
 <MudContainer Class="d-flex justify-center align-center">
     <MudPaper Elevation="5" Class="pa-5" style="text-align:center">
         <MudContainer Class="d-flex flex-column justify-center" style="width: 450px">
             <img src="/icon-512.png" alt="Group exchanging questions and answers online">
-            <MudSelect T="Group" Label="Group Name" Placeholder="Select Group to Disconnect" Variant="Variant.Outlined"  OffsetY="true" @bind-Value="SelectedGroup">
-                @foreach (var group in groupState.Connected.Values)
+            <MudSelect T="@string" Label="Group Name" Variant="Variant.Outlined"  OffsetY="true" @bind-Value="Group">
+                @foreach (var item in groupState.Connected.Values)
                 {
-                    <MudSelectItem Value=@group>@group.Name</MudSelectItem>
+                    <MudSelectItem Value=@item.Address>@item.Name</MudSelectItem>
                 }
             </MudSelect>
             <MudFab Icon="@Icons.Material.TwoTone.GroupRemove" Label="Disconnect" Size="Size.Medium" Class="align-self-center mt-6" Color="Color.Warning" @onclick="Disconnect" />
@@ -19,14 +20,19 @@
 </MudContainer>
 
 @code {
-    private Group SelectedGroup { get; set; } = Group.Empty;
+    private string Group { get; set; } = string.Empty;
 
-    private void Disconnect()
+    private async Task Disconnect()
     {
-        if (SelectedGroup == Group.Empty) return;
-        groupState.Disconnect(SelectedGroup);
-        SelectedGroup = Group.Empty;
+        var selectedGroup = groupState.Connected[Group];
+        if (selectedGroup == Model.Group.Empty)
+            return;
+        await groupState.Disconnect(selectedGroup);
+        selectedGroup = Model.Group.Empty;
+        Group = string.Empty;
         StateHasChanged();
+        if(!groupState.Connected.Any())
+            navigation.NavigateTo("/connect");
     }
 
 }

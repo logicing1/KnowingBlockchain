@@ -6,14 +6,18 @@
 
         public FileSystem()
         {
-            Load(new Sample());
+            Load(new SampleData());
+        }
+
+        public async Task<string> Store(string content)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<string> Retrieve(string cid) => files.TryGetValue(cid, out var content) ? content : string.Empty;
 
-        public async Task Store(string cid, string content) => files.Add(cid, content);
 
-        private void Load(Sample sample)
+        private void Load(SampleData sample)
         {
             foreach (var @group in sample.Groups.Values)
             {

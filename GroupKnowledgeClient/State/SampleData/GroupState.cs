@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Blazored.LocalStorage;
 using GroupKnowledgeClient.Model;
 using GroupKnowledgeClient.Services;
 
@@ -6,15 +7,11 @@ namespace GroupKnowledgeClient.State.SampleData
 {
     public class GroupState : IGroupState
     {
-        private readonly ILocalStorage localStorage;
+        private readonly ILocalStorageService localStorage;
 
-        public GroupState(ILocalStorage localStorage)
+        public GroupState(ILocalStorageService localStorage)
         {
             this.localStorage = localStorage;
-            foreach (var @group in localStorage.Groups)
-            {
-                Connected.Add(@group.Address, @group);
-            }
         }
         
         public event Func<Task>? Changed;
@@ -27,7 +24,7 @@ namespace GroupKnowledgeClient.State.SampleData
 
         public async Task<bool> Connect(string groupAddress)
         {
-            var group = new Group(groupAddress);
+            var group = new Group(groupAddress, Agent.Empty);
             await group.LoadName();
             await group.LoadBalance();
             if (group.Name == string.Empty)
@@ -39,13 +36,18 @@ namespace GroupKnowledgeClient.State.SampleData
             return true;
         }
 
-        public void Disconnect(Group @group)
+        public async Task Disconnect(Group @group)
         {
             Connected.Remove(@group.Address);
             NotifyChanged();
         }
 
         private void NotifyChanged() => Changed?.Invoke();
+
+        public async Task Load()
+        {
+            throw new NotImplementedException();
+        }
 
     }
 }

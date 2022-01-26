@@ -1,4 +1,4 @@
-﻿ using GroupKnowledgeClient.Services.SampleData;
+﻿ using GroupKnowledgeClient.Services.Default;
 
 namespace GroupKnowledgeClient.Model
 {
@@ -6,11 +6,11 @@ namespace GroupKnowledgeClient.Model
     {
         public static Answer Empty { get; } = new(string.Empty, -1);
 
-        private readonly FileSystem fileSystem;
+        private readonly InterPlanetaryFiles fileSystem;
 
         public Answer(string cid, int index)
         {
-            fileSystem = new FileSystem();
+            fileSystem = new InterPlanetaryFiles();
             Cid = cid;
             Index = index;
         }

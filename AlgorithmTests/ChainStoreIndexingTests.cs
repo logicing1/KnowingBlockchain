@@ -7,7 +7,6 @@ using System.Security.Cryptography;
 using System.Text;
 using Xunit;
 using NSubstitute;
-using GroupKnowledge.Contract;
 using Stratis.SmartContracts;
 
 namespace AlgorithmTests

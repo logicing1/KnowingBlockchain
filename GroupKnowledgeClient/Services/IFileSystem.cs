@@ -4,7 +4,7 @@ namespace GroupKnowledgeClient.Services
 {
     public interface IFileSystem
     {
-        Task Store(string cid, string content);
+        Task<string> Store(string content);
         Task<string> Retrieve(string cid);
     }
 }

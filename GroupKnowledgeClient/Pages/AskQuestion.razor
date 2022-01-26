@@ -3,6 +3,7 @@
 
 @inject NavigationManager navigation;
 @inject ISnackbar snackbar;
+@inject IDialogService dialogService;
 @inject IGroupState groupState;
 
 <MudContainer Class="d-flex justify-center align-center">
@@ -40,7 +41,15 @@
         {
             return;
         }
-        var success = await Group.Ask(QuestionContent);
+        var dialog = dialogService.Show<PasswordDialog>();
+        var result = await dialog.Result;
+        var password = result.Data.ToString() ?? string.Empty;
+        if (password == string.Empty)
+        {
+            snackbar.Add("Password not provided", Severity.Warning);
+            return;
+        }
+        var success = await Group.Ask(QuestionContent, password);
         if (success)
         {
             snackbar.Add("Transaction to ask question succeeded", Severity.Success);

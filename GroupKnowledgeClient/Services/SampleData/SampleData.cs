@@ -7,7 +7,7 @@ using Stratis.SmartContracts;
 
 namespace GroupKnowledgeClient.Services.SampleData
 {
-    public class Sample
+    public class SampleData
     {
         private readonly Random random;
 
@@ -20,7 +20,7 @@ namespace GroupKnowledgeClient.Services.SampleData
             "Particle Swarm Optimization",
         };
 
-        public Sample(int seed = 55)
+        public SampleData(int seed = 55)
         {
             random = new Random(seed);
             Groups = GenerateGroups();

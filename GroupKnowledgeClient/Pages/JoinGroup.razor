@@ -3,6 +3,7 @@
 
 @inject NavigationManager navigation;
 @inject ISnackbar snackbar;
+@inject IDialogService dialogService;
 @inject IGroupState groupState;
 
 
@@ -41,7 +42,16 @@
 
     private async Task Join()
     {
-        var success = await Group.Join(TransferAmount);
+        var dialog = dialogService.Show<PasswordDialog>();
+        var result = await dialog.Result;
+        var password = result.Data.ToString() ?? string.Empty;
+        if (password == string.Empty)
+        {
+            snackbar.Add("Password not provided", Severity.Warning);
+            return;
+        }
+
+        var success = await Group.Join(TransferAmount, password);
         if (success)
         {
             snackbar.Add("Joined Group Successfully", Severity.Success);

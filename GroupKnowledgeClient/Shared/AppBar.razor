@@ -1,0 +1,49 @@
+﻿@inject IDialogService dialogService
+@inject NavigationManager navigation;
+@inject IAgentState agentState
+
+@implements IDisposable;
+
+<MudAppBar Elevation="25">
+    <MudHidden Breakpoint="Breakpoint.SmAndDown">
+        <MudAvatar Image="icon-512.png" Size="Size.Large"></MudAvatar>
+    </MudHidden>
+    <MudHidden Breakpoint="Breakpoint.MdAndUp">
+        <MudIconButton Icon="@Icons.Material.Outlined.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerControl?.Invoke())" />
+    </MudHidden>
+    <MudHidden Breakpoint="Breakpoint.Xs">
+        <MudText Typo="Typo.h6" Class="ml-4">Group Knowledge Builder</MudText>
+    </MudHidden>
+    <MudHidden Breakpoint="Breakpoint.Xs" Invert="true">
+        <MudText Typo="Typo.subtitle2">Group Knowledge Builder</MudText>
+    </MudHidden>
+    <MudSpacer />
+    <MudButton Variant="Variant.Text" Style="text-transform:none" Color="Color.Inherit" Size="Size.Small" StartIcon="@Icons.Material.Filled.AccountBalanceWallet" @onclick="SetWallet">@agentState.ActiveAgent.Wallet</MudButton>
+</MudAppBar>
+
+@code {
+
+    [Parameter]
+    public Action? DrawerControl { get; set; } = null;
+
+    protected override void OnInitialized()
+    {
+        agentState.Changed += Refresh;
+    }
+
+    private void SetWallet()
+    {
+        navigation.NavigateTo("/account");
+    }
+
+    public void Dispose()
+    {
+        agentState.Changed -= Refresh;
+    }
+
+    private async Task Refresh()
+    {
+        StateHasChanged();
+    }
+
+}

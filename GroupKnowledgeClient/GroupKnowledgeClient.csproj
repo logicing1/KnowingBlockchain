@@ -7,13 +7,26 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="State\SampleData\**" />
+	  <Content Remove="State\SampleData\**" />
+	  <EmbeddedResource Remove="State\SampleData\**" />
+	  <None Remove="State\SampleData\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Remove="Services\SampleData\ContractProxy.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <Content Include="AppTheme.cs" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Blazored.LocalStorage" Version="4.1.5" />
 		<PackageReference Include="Ipfs.Http.Client" Version="0.33.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.1" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.2.0" />
 		<PackageReference Include="MudBlazor" Version="6.0.2" />
 		<PackageReference Include="Pinata.Client" Version="1.0.0" />
 		<PackageReference Include="Stratis.SmartContracts.Standards" Version="2.0.0" />
@@ -21,7 +34,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\GroupKnowledgeContract\GroupKnowledgeContract.csproj" />
-	  <ProjectReference Include="..\StratisClient\StratisClient.csproj" />
+	  <ProjectReference Include="..\StratisDataTransferObjects\StratisDataTransferObjects.csproj" />
 	</ItemGroup>
 	
 	
