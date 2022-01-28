@@ -10,7 +10,5 @@ namespace ChainTests
             Account = "account 0";
             Address = "PR26mueN928Ejujkrj9w3AMgcMfF8pvM8y";
         }
-
-        public string Password { get; } = "password";
     }
 }

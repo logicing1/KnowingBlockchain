@@ -1,6 +1,4 @@
-﻿using Google.Protobuf.WellKnownTypes;
-
-namespace GroupKnowledgeClient.Model
+﻿namespace GroupKnowledgeClient.Model
 {
     public class Agent
     {

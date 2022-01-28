@@ -16,7 +16,7 @@ namespace GroupKnowledgeClient.State.Default
 
         public event Func<Task>? Changed;
 
-        public Agent ActiveAgent { get; set; } = Agent.Empty;
+        public Agent ActiveAgent { get; private set; } = Agent.Empty;
 
         public async Task Load()
         {

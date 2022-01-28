@@ -9,7 +9,7 @@ namespace GroupKnowledgeClient.Services
 
         Task<string> CreateContract(Agent agent, string contractName, ICollection<string>? parameters = null);
         Task<string> SendTransaction(Agent agent, string password, string methodName, ICollection<string>? parameters = null);
-        Task<object?> GetTransactionResult(string transaction);
+        Task<string?> GetTransactionResult(string transaction);
         Task<JsonElement?> MakeLocalCall(Agent agent, string methodName, ICollection<string>? parameters = null);
     }
 }

@@ -31,6 +31,12 @@
         agentState.Changed += Refresh;
     }
 
+    protected override async Task OnParametersSetAsync()
+    {
+        if (agentState.ActiveAgent == Agent.Empty)
+            await agentState.Load();
+    }
+
     private void SetWallet()
     {
         navigation.NavigateTo("/account");

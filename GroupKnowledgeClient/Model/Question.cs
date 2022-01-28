@@ -7,8 +7,10 @@ namespace GroupKnowledgeClient.Model
     {
         public static Question Empty { get; } = new(string.Empty, -1, Agent.Empty);
 
-        private readonly IFileSystem fileSystem;
-        private readonly CirrusApi contract;
+        private const int TRANSACTION_DELAY = 5000;
+
+        private readonly IFilestore fileSystem;
+        private readonly IBlockchain blockchain;
         private readonly Agent agent;
         private string questionContent = string.Empty;
 
@@ -16,11 +18,11 @@ namespace GroupKnowledgeClient.Model
         {
             this.agent = agent;
             this.fileSystem = new InterPlanetaryFiles();
-            contract = new CirrusApi(contractAddress);
+            blockchain = new Cirrus(contractAddress);
             Index = index;
         }
 
-        public string Address => contract.Address;
+        public string Address => blockchain.Address;
 
         public int Index { get; init; }
          
@@ -33,7 +35,7 @@ namespace GroupKnowledgeClient.Model
         public async Task LoadCid() 
         {
             if (Cid != string.Empty) return;
-            var response = await contract.MakeLocalCall(agent, nameof(Cid));
+            var response = await blockchain.MakeLocalCall(agent, "Question");
             if(!response.HasValue)
                 return;
             Cid = response.Value.ToString();
@@ -51,7 +53,7 @@ namespace GroupKnowledgeClient.Model
         public async Task LoadAnswers()
         {
             var answers = new List<Answer>();
-            var answersResponse = await contract.MakeLocalCall(agent, nameof(Answers));
+            var answersResponse = await blockchain.MakeLocalCall(agent, "ListAnswers");
             if(!answersResponse.HasValue) 
                 return;
             var delimitedCid = answersResponse.Value.ToString();
@@ -66,7 +68,7 @@ namespace GroupKnowledgeClient.Model
         public async Task LoadVote()
         {
             if(Answers.Count == 0) return;
-            var voteResponse = await contract.MakeLocalCall(agent, "VoterVote");
+            var voteResponse = await blockchain.MakeLocalCall(agent, "VoterVote");
             var delimitedRanks = voteResponse.ToString();
             if (string.IsNullOrEmpty(delimitedRanks)) return;
             var ranks = delimitedRanks.Split(",");
@@ -84,7 +86,11 @@ namespace GroupKnowledgeClient.Model
 
         public async Task<bool> Answer(string content, string password)
         {
-            throw new NotImplementedException();
+            var cid = await fileSystem.Store(content);
+            var transactionId = await blockchain.SendTransaction(agent, password, "ProposeAnswer", new string[] { $"4#{cid}" });
+            await Task.Delay(TRANSACTION_DELAY);
+            var address = await blockchain.GetTransactionResult(transactionId); //TODO: Answer based on transaction success, there is no return value
+            return !string.IsNullOrWhiteSpace(address);
         }
 
         public void Rank(string password) 

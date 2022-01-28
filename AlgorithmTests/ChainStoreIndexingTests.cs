@@ -13,41 +13,6 @@ namespace AlgorithmTests
 {
     public class ChainStoreIndexingTests
     {
-        [Fact]
-        public void TestIncrementing()
-        {
-            var list = new Dictionary<string, object>();
-            var currentCount = 0;
-            for (int i = 0; i < 4; i++)
-            {
-                list.Add($"Vote{currentCount++}", Guid.NewGuid());
-            }
-            Debug.WriteLine(list.Count);
-        }
-
-        [Fact]
-        public void ByteArrayToString()
-        {
-            var text = Encoding.UTF8.GetBytes("The rain in spain falls mainly on the plains.");
-            var hash = SHA256.HashData(text);
-            var hashString = hash.ToString();
-            Debug.WriteLine(hashString);
-            Debug.WriteLine("stop");
-
-        }
-
-        [Fact]
-        public void ByteArrayToString2()
-        {
-            var bytes = Encoding.UTF8.GetBytes("The rain in spain falls mainly on the plains.");
-            var hex = string.Empty;
-            foreach (var b in bytes)
-            {
-                hex += (char)b; }
-            Debug.WriteLine(hex);
-            Debug.WriteLine("stop");
-
-        }
 
         [Fact]
         public void MiniMax()
@@ -75,20 +40,6 @@ namespace AlgorithmTests
             var expected = Scores;
             Array.Sort(expected);
             Assert.Equal(expected, score);
-        }
-
-        [Fact]
-        public void DefaultAnswerHash()
-        {
-            const string DEFAULT_ANSWER = "Reject question as off topic, ambiguous, unanswerable, or otherwise invalid.";
-
-            using var sha = SHA256.Create();
-            var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(DEFAULT_ANSWER));
-            var hex = Convert.ToHexString(hash).ToLower();
-            Debug.WriteLine(hash);
-            Debug.WriteLine(hex);
-            Assert.True(hex.Length == 64);
-
         }
 
         private static int[] Scores => new[] { 0, -1, 0, 0 };

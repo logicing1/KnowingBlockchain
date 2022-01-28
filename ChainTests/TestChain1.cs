@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ChainTests
 {
-    public class TestChain1
+    public class TestChain1 : ITestChain
     {
 
         public string Location { get; } = @"http://localhost:38223";

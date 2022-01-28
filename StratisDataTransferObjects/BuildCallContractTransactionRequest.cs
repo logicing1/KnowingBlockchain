@@ -4,7 +4,6 @@ public class BuildCallContractTransactionRequest
 {
     public string WalletName { get; set; }
     public string AccountName { get; set; }
-    public ICollection<OutpointRequest> Outpoints { get; set; }
     public string ContractAddress { get; set; }
     public string MethodName { get; set; }
     public string Amount { get; set; }

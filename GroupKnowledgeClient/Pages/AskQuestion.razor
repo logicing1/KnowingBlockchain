@@ -9,13 +9,14 @@
 <MudContainer Class="d-flex justify-center align-center">
     <MudPaper Elevation="5" Class="pa-5 mud-width-full" Style="text-align:center">
         <MudContainer Class="d-flex flex-column justify-center">
-            <MudTextField T="string" Label="Question" @bind-Value="QuestionContent" Variant="Variant.Outlined" Lines="50"/>
+            <MudTextField T="string" Label="Question" @bind-Value="QuestionContent" Variant="Variant.Outlined" Lines="50" />
             <MudFab Icon="@Icons.Material.TwoTone.Quiz" Label="Ask Question" Size="Size.Medium" Class="align-self-center mt-6" Color="Color.Primary" @onclick="Ask" />
         </MudContainer>
     </MudPaper>
 </MudContainer>
 
 @code {
+
     [Parameter]
     public string Contract { get; set; } = string.Empty;
 
@@ -38,17 +39,10 @@
     private async Task Ask()
     {
         if (Group == Group.Empty)
-        {
             return;
-        }
-        var dialog = dialogService.Show<PasswordDialog>();
-        var result = await dialog.Result;
-        var password = result.Data.ToString() ?? string.Empty;
-        if (password == string.Empty)
-        {
-            snackbar.Add("Password not provided", Severity.Warning);
+        var password = await GetPassword();
+        if (string.IsNullOrWhiteSpace(password))
             return;
-        }
         var success = await Group.Ask(QuestionContent, password);
         if (success)
         {
@@ -58,5 +52,17 @@
         {
             snackbar.Add("Transaction to ask question failed", Severity.Error);
         }
+        navigation.NavigateTo($"questions/{Group.Address}");
+    }
+
+    private async Task<string> GetPassword()
+    {
+        var dialog = dialogService.Show<PasswordDialog>();
+        var result = await dialog.Result;
+        var password = result.Data.ToString() ?? string.Empty;
+        if (password == string.Empty)
+            snackbar.Add("Password not provided", Severity.Warning);
+        dialog.Close();
+        return password;
     }
 }

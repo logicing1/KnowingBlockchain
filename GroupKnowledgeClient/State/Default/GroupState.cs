@@ -30,6 +30,7 @@ namespace GroupKnowledgeClient.State.Default
                 return;
             Selected = Connected[address];
             await Selected.Load();
+            NotifyChanged(); 
         }
 
         public async Task<bool> Connect(string groupAddress)

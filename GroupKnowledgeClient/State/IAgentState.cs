@@ -6,7 +6,7 @@ namespace GroupKnowledgeClient.State
     {
         event Func<Task>? Changed;
 
-        Agent ActiveAgent { get; set; }
+        Agent ActiveAgent { get; }
 
         Task Load();
 

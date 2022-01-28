@@ -4,11 +4,11 @@ namespace GroupKnowledgeClient.State
 {
     public interface IGroupState
     {
+        event Func<Task>? Changed;
+
         IDictionary<string, Group> Connected { get; }
 
         Group? Selected { get; }
-
-        event Func<Task>? Changed;
 
         Task Load();
 

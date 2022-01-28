@@ -14,19 +14,26 @@
             <img src="/icon-512.png" alt="Group exchanging questions and answers online">
             <MudTextField Label="Wallet Name" @bind-Value="Agent.Wallet" Variant="Variant.Outlined" Class="ma-2"></MudTextField>
             <MudTextField Label="Account Address" @bind-Value="Agent.Address" Variant="Variant.Outlined" Class="ma-2"></MudTextField>
-            <MudNumericField Label="Gas Price To Offer" @bind-Value="Agent.GasPrice" Variant="Variant.Outlined" Class="ma-2"></MudNumericField>
-            <MudNumericField Label="Gas Limit on Transactions" @bind-Value="Agent.GasLimit" Variant="Variant.Outlined" Class="ma-2"></MudNumericField>
+            <MudNumericField Label="Gas Price To Offer" @bind-Value="Agent.GasPrice" Min="MIN_GAS_PRICE" Max="MIN_GAS_PRICE" Variant="Variant.Outlined" Class="ma-2"></MudNumericField>
+            <MudNumericField Label="Gas Limit on Transactions" @bind-Value="Agent.GasLimit" Min="MIN_GAS_LIMIT" Max="MAX_GAS_LIMIT" Variant="Variant.Outlined" Class="ma-2"></MudNumericField>
             <MudFab Icon="@Icons.Material.TwoTone.GroupAdd" Label="Confirm" Size="Size.Medium" Class="align-self-center mt-6" Color="Color.Primary" @onclick="Confirm" />
         </MudContainer>
     </MudPaper>
 </MudContainer>
 
 @code {
+
+    private const int MIN_GAS_PRICE = 100;
+    private const int MAX_GAS_PRICE = 10000;
+    private const int MIN_GAS_LIMIT = 12000;
+    private const int MAX_GAS_LIMIT = 250000;
+
     private Agent Agent { get; set; } = Agent.Empty;
 
     protected override async Task OnParametersSetAsync()
     {
-        if (agentState.ActiveAgent == Agent.Empty) await agentState.Load();
+        if (agentState.ActiveAgent == Agent.Empty)
+            await agentState.Load();
         Agent = agentState.ActiveAgent;
     }
 

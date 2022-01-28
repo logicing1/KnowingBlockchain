@@ -1,25 +1,9 @@
-﻿using System.Diagnostics;
-using System.Dynamic;
-using System.Globalization;
-using System.Net.Http.Json;
-using System.Net.WebSockets;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
-using System.Text.Unicode;
-using Ipfs;
-using Ipfs.CoreApi;
-using Pinata.Client;
-using Pinata.Client.Models;
-using Ipfs.Http;
-using Microsoft.AspNetCore.Http.Headers;
+﻿using System.Net.Http.Json;
 
 
 namespace GroupKnowledgeClient.Services.Default
 {
-    public class InterPlanetaryFiles : IFileSystem
+    public class InterPlanetaryFiles : IFilestore
     {
         private const string IPFS_ENDPOINT = "http://localhost:5001/api/v0/";
 
@@ -41,7 +25,7 @@ namespace GroupKnowledgeClient.Services.Default
 
         public async Task<string> Store(string text)
         {
-            const string OPERATION = "dag/put";
+            const string OPERATION = "dag/put?pin=true";
 
             var content = new MultipartFormDataContent { JsonContent.Create(text) };
             var response = await http.PostAsync(OPERATION, content);

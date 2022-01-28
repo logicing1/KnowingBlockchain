@@ -5,7 +5,7 @@ using Stratis.SmartContracts;
 public class GroupKnowledge : SmartContract
 {
     private const ulong MIN_MEMBERSHIP_FEE = 1000000;
-    private const ulong ASK_INTERVAL = 100;
+    private const ulong ASK_INTERVAL = 2;  //TODO: Change to longer interval once test/demo completed
     private const int MIN_GROUP_NAME_LENGTH = 5;
     private const int MAX_GROUP_NAME_LENGTH = 50;
     private const int ANSWER_REWARD_FACTOR = 4;
@@ -18,10 +18,13 @@ public class GroupKnowledge : SmartContract
         Assert(Message.Value >= MIN_MEMBERSHIP_FEE, $"The group's membership fee must be at least {MIN_MEMBERSHIP_FEE}.");
         GroupMembershipFee = Message.Value;
         SetMemberBalance(Message.Sender, Message.Value);
-        TotalMembers++;
+        TotalMembers = 1;
         TokenBalance = Message.Value;
         VoterReward = GroupMembershipFee / MIN_MEMBERSHIP_FEE;
         AnswererReward = VoterReward * ANSWER_REWARD_FACTOR;
+        TotalAsked = 0;
+        TotalUnanswered = 0;
+        LastAskBlock = Block.Number > ASK_INTERVAL ? Block.Number - ASK_INTERVAL : 0;
     }
 
     private string GroupName
@@ -105,13 +108,16 @@ public class GroupKnowledge : SmartContract
         if (GetMemberBalance(Message.Sender) == 0) TotalMembers--;
     }
 
-    public void Ask(string questionCid)
+    public Address Ask(string questionCid)
     {
         Assert(Block.Number - LastAskBlock > ASK_INTERVAL, $"Only one question can be asked every {ASK_INTERVAL} blocks.");
-        var result = Create<GroupKnowledgeQuestion>(0, new object[] { Address, questionCid });
+        var result = Create<GroupKnowledgeQuestion>(0, new object[] { questionCid });
         Assert(result.Success, "Failed to create a contract for the question asked.");
-        SetQuestion(++TotalAsked, result.NewContractAddress);
-        SetUnanswered(++TotalUnanswered, result.NewContractAddress);
+        var questionContractAddress = result.NewContractAddress;
+        SetQuestion(TotalAsked++, questionContractAddress);
+        SetUnanswered(TotalUnanswered++, questionContractAddress);
+        LastAskBlock = Block.Number;
+        return questionContractAddress;
     }
 
     public string ListAsked()
@@ -172,7 +178,6 @@ public class GroupKnowledge : SmartContract
 }
 
 
-
 public class GroupKnowledgeQuestion : SmartContract
 {
     private const string DEFAULT_ANSWER_CID = "bafyreiao4glgd4hejdc5suinjykavjmicaj5d5kckr7md6hetees2skksu"; //"Reject question as off topic, ambiguous, unanswerable, or otherwise invalid.";
@@ -183,11 +188,11 @@ public class GroupKnowledgeQuestion : SmartContract
 
     public GroupKnowledgeQuestion(ISmartContractState contractState, string question) : base(contractState)
     {
-        Assert(question.Length < 300, "A valid IPFS Content ID (CID) of the question is required.  Length of CID must be less than 300");
         Group = Message.Sender;
         QuestionCid = question;
         ParticipationRequirement = MIN_PARTICIPATION_PERCENT;
-        SetAnswer(++TotalAnswers, DEFAULT_ANSWER_CID, Address, int.MaxValue);
+        TotalAnswers = 0;
+        SetAnswer(TotalAnswers++, DEFAULT_ANSWER_CID, Address, int.MaxValue);
         StartBlock = Block.Number;
     }
 
@@ -239,7 +244,7 @@ public class GroupKnowledgeQuestion : SmartContract
     {
         var membershipCheckResult = Call(Group, 0, "IsMember");
         Assert(membershipCheckResult.Success && (bool)membershipCheckResult.ReturnValue == true, "Must be group member to propose an answer.");
-        SetAnswer(++TotalAnswers, cid, Message.Sender, 0);
+        SetAnswer(TotalAnswers++, cid, Message.Sender, 0);
     }
 
     public string ListAnswers()

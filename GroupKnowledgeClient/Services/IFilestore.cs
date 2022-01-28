@@ -2,7 +2,7 @@
 
 namespace GroupKnowledgeClient.Services
 {
-    public interface IFileSystem
+    public interface IFilestore
     {
         Task<string> Store(string content);
         Task<string> Retrieve(string cid);

@@ -22,7 +22,8 @@ namespace CirrusProxy.Controllers
         public async Task<BuildCallContractTransactionResponse> Post(BuildCallContractTransactionRequest request)
         {
             var response = await http.PostAsJsonAsync(OPERATION, request);
-            return await response.Content.ReadFromJsonAsync<BuildCallContractTransactionResponse>() ?? new BuildCallContractTransactionResponse();
+            var result = await response.Content.ReadFromJsonAsync<BuildCallContractTransactionResponse>();
+            return result!;
         }
     }
 }

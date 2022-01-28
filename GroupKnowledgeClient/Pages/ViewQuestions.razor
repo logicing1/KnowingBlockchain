@@ -20,7 +20,7 @@
      {
          <MudText Typo="Typo.h6">No Questions have been asked yet.</MudText>
      }
-     @foreach (var question in Group.Questions)
+     @foreach (var question in Group.Questions.OrderByDescending(g => g.Index))
      {
          <MudItem xl="4" lg="6" md="12">
              <QuestionCard Question="@question"/>
