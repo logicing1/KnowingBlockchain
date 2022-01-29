@@ -1,29 +1,37 @@
 ﻿@page "/join/{contract}"
+@using System.Globalization
 @layout MainLayout
 
 @inject NavigationManager navigation;
 @inject ISnackbar snackbar;
 @inject IDialogService dialogService;
 @inject IGroupState groupState;
+@inject IAgentState agentState;
 
 
 <MudContainer Class="d-flex justify-center align-center">
     <MudPaper Elevation="5" Class="pa-5" Style="text-align:center">
         <MudText Typo="Typo.h5" Class="mt-2">Join Group:</MudText>
         <MudText Typo="Typo.h6" Class="mt-a">@Group.Name</MudText>
-        <MudNumericField Variant="Variant.Outlined" Class="mt-2" T="ulong" Label="Transfer Amount" Min="@Group.MembershipFee" @bind-Value="TransferAmount" />
+        <MudNumericField Variant="Variant.Outlined" Class="mt-2" T="double" Step="@feeStep" Label="Transfer TCRS" Min="@MembershipFeeInTcrs" @bind-Value="TransferAmountInTcrs" />
         <MudFab Icon="@Icons.Material.Filled.GroupRemove" Label="Join" Size="Size.Medium" Class="mt-6 align-self-center" Color="Color.Primary" @onclick="Join" />
     </MudPaper>
 </MudContainer>
 
 @code {
 
+    const double TCRS_DIVISOR = 100000000;
+
+    private double feeStep = .001;
+
     [Parameter]
     public string Contract { get; set; } = string.Empty;
 
     private Group Group { get; set; } = Group.Empty;
 
-    private ulong TransferAmount { get; set; } = 0;
+    private double MembershipFeeInTcrs { get; set; } = 0;
+
+    private double TransferAmountInTcrs { get; set; } = 0;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -32,7 +40,9 @@
         {
             Group = group;
             await Group.LoadMembershipFee();
-            TransferAmount = group.MembershipFee;
+            MembershipFeeInTcrs = group.MembershipFee / TCRS_DIVISOR;
+            TransferAmountInTcrs = MembershipFeeInTcrs;
+            feeStep = MembershipFeeInTcrs / 10;
         }
         else
         {
@@ -50,8 +60,9 @@
             snackbar.Add("Password not provided", Severity.Warning);
             return;
         }
-
-        var success = await Group.Join(TransferAmount, password);
+        agentState.StartTransaction();
+        var success = await Group.Join(TransferAmountInTcrs.ToString(CultureInfo.InvariantCulture), password);
+        agentState.StopTransaction();
         if (success)
         {
             snackbar.Add("Joined Group Successfully", Severity.Success);
@@ -62,6 +73,4 @@
             snackbar.Add("Transaction to join group failed", Severity.Error);
         }
     }
-
-
 }

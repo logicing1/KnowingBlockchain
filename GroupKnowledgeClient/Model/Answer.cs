@@ -21,7 +21,9 @@ namespace GroupKnowledgeClient.Model
 
         public string Content { get; private set; } = string.Empty;
 
-        public uint Rank { get; set; }
+        public uint MemberRank { get; set; }
+
+        public int GroupScore { get; set; }
 
         public async Task LoadContent()
         {

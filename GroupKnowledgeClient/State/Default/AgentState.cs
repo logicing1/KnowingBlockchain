@@ -18,6 +18,20 @@ namespace GroupKnowledgeClient.State.Default
 
         public Agent ActiveAgent { get; private set; } = Agent.Empty;
 
+        public bool TransactionInProgress { get; set; }
+
+        public void StartTransaction()
+        {
+            TransactionInProgress = true;
+            NotifyChanged();
+        }
+
+        public void StopTransaction()
+        {
+            TransactionInProgress = false;
+            NotifyChanged();
+        }
+
         public async Task Load()
         {
             var isStored = await localStorage.ContainKeyAsync(nameof(ActiveAgent));

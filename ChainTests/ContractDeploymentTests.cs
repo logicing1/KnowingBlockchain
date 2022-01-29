@@ -1,4 +1,4 @@
-﻿using System;
+﻿ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -64,7 +64,7 @@ public class ContractDeploymentTests
     public async Task ContractDeploys()
     {
         const string OPERATION = "build-and-send-create";
-        const string GROUP_NAME = "Question Contract 02";
+        const string GROUP_NAME = "Group Knowledge Contract 01";
 
         var compilationResult = ContractCompiler.CompileFile(CONTRACT_CODE_FILE);
         var byteCode = compilationResult.Compilation.ToHexString();
@@ -72,8 +72,8 @@ public class ContractDeploymentTests
         {
             WalletName = agent.Wallet,
             AccountName = agent.Account,
-            Amount = ".01",
-            FeeAmount = ".001",
+            Amount = "1",
+            FeeAmount = "0",
             Password = password,
             ContractCode = byteCode,
             GasPrice = agent.GasPrice,
@@ -84,6 +84,7 @@ public class ContractDeploymentTests
         var http = new HttpClient() { BaseAddress = new Uri(API_ENDPOINT) };
         var response = await http.PostAsJsonAsync(OPERATION, request);
         Assert.True(response.IsSuccessStatusCode);
+        
     }
 
     private void OutputByteCode(ContractCompilationResult compilationResult)

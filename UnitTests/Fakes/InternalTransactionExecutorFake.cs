@@ -9,14 +9,21 @@ namespace Logicing.Knowing.UnitTests.Fakes
 {
     internal class InternalTransactionExecutorFake : IInternalTransactionExecutor
     {
+        private object transferResult;
+
+        public InternalTransactionExecutorFake(object transferResult = null)
+        {
+            this.transferResult = transferResult ?? true;
+        }
+
         public ITransferResult Transfer(ISmartContractState smartContractState, Address addressTo, ulong amountToTransfer)
         {
-            return new TransferResultFake();
+            return new TransferResultFake(transferResult);
         }
 
         public ITransferResult Call(ISmartContractState smartContractState, Address addressTo, ulong amountToTransfer, string methodName, object[] parameters, ulong gasLimit = 0)
         {
-            throw new NotImplementedException();
+            return new TransferResultFake(transferResult);
         }
 
         public ICreateResult Create<T>(ISmartContractState smartContractState, ulong amountToTransfer, object[] parameters, ulong gasLimit = 0)

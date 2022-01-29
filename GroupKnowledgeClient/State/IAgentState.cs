@@ -8,6 +8,12 @@ namespace GroupKnowledgeClient.State
 
         Agent ActiveAgent { get; }
 
+        bool TransactionInProgress { get; }
+
+        void StartTransaction();
+
+        void StopTransaction();
+
         Task Load();
 
         Task Save(Agent agent);

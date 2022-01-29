@@ -27,8 +27,6 @@
     protected override async Task OnParametersSetAsync()
     {
         await Question.LoadContent();
-        Console.WriteLine(Question.Cid);
-        Console.WriteLine(Question.Content);
         answersLink = $"/rank/{Question.Address}";
     }
 

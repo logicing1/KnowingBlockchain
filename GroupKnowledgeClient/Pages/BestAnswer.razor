@@ -1,0 +1,52 @@
+﻿@page "/best/{contract}"
+@layout MainLayout
+
+@inject NavigationManager navigation;
+@inject ISnackbar snackbar;
+@inject IDialogService dialogService;
+@inject IGroupState groupState;
+@inject IAgentState agentState;
+
+<MudToolBar>
+    <MudSpacer />
+</MudToolBar>
+<MudDivider Class="mb-5" />
+<MudGrid>
+    <MudItem xs="12">
+        <MudExpansionPanel>
+            <TitleContent>
+                <div class="d-flex">
+                    <MudIcon Icon="@Icons.Material.TwoTone.Quiz" Size="Size.Large" Color="Color.Secondary" />
+                    <MudText Color="Color.Secondary" Typo="Typo.h6" Class="ml-2">Question @Question.Index</MudText>
+                </div>
+            </TitleContent>
+            <ChildContent>
+                <MudText Typo="Typo.body2">@Question.Content</MudText>
+            </ChildContent>
+        </MudExpansionPanel>
+    </MudItem>
+    <MudItem xl="4" lg="6" md="12">
+        <AnswerCard Answer="@Best" TotalAnswers="@TotalAnswers" />
+    </MudItem>
+</MudGrid>
+
+@code {
+
+    [Parameter]
+    public string Contract { get; set; } = string.Empty;
+
+    private Question Question { get; set; } = Question.Empty;
+
+    private uint TotalAnswers { get; set; } = 0;
+
+    private Answer? Best { get; set; } = null;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        Question = groupState.SelectedQuestion(Contract);
+        await Question.Load();
+        TotalAnswers = (uint)Question.Answers.Count();
+        if(Question.BestAnswer == null)
+            navigation.NavigateTo($"/rank/{Question.Address}");
+    }
+}

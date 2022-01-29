@@ -24,7 +24,7 @@ namespace GroupKnowledgeClient.Services.Default
             throw new NotImplementedException();
         }
 
-        public async Task<string> SendTransaction(Agent agent, string password, string methodName, ICollection<string>? parameters = null)
+        public async Task<string> SendTransaction(Agent agent, string password, string methodName, string amount = "0", ICollection<string>? parameters = null)
         {
             const string OPERATION = "build-and-send-call";
 
@@ -36,8 +36,8 @@ namespace GroupKnowledgeClient.Services.Default
                     AccountName = agent.Account,
                     ContractAddress = Address,
                     MethodName = methodName,
-                    Amount = "0",
-                    FeeAmount = ".01",
+                    Amount = amount,
+                    FeeAmount = "0",
                     Password = password,
                     GasPrice = agent.GasPrice,
                     GasLimit = agent.GasLimit,
@@ -53,11 +53,11 @@ namespace GroupKnowledgeClient.Services.Default
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                throw;
+                return string.Empty;
             }
         }
 
-        public async Task<string?> GetTransactionResult(string txHash)
+        public async Task<(bool, string?)> GetTransactionResult(string txHash)
         {
             const string OPERATION = "receipt";
 
@@ -65,14 +65,14 @@ namespace GroupKnowledgeClient.Services.Default
             {
                 var response = await http.GetAsync($"{OPERATION}?txHash={txHash}");
                 if (!response.IsSuccessStatusCode)
-                    return string.Empty;
+                    return (false, string.Empty);
                 var result = await response.Content.ReadFromJsonAsync<ReceiptResponse>() ?? new ReceiptResponse() { Success = false };
-                return result.Success == true ? result?.ReturnValue : string.Empty;
+                return result.Success == true ? (true, result?.ReturnValue) : (false, string.Empty);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                throw;
+                return (false, string.Empty);
             }
         }
 
@@ -100,7 +100,7 @@ namespace GroupKnowledgeClient.Services.Default
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                throw;
+                return null;
             }
         }
     }

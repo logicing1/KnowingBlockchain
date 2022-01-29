@@ -23,9 +23,9 @@ namespace Logicing.Knowing.UnitTests.Contract
 
             messageValue = 1000000;
             var state = new SmartContractStateFake(MakeMessage, MakeBlock);
-            var questionContract = new GroupKnowledgeQuestion(state, CID);
+            var contract = new GroupKnowledgeQuestion(state, CID);
 
-            var questionCid = questionContract.Question();
+            var questionCid = contract.Question();
 
             Assert.Equal(CID, questionCid);
 
@@ -39,9 +39,9 @@ namespace Logicing.Knowing.UnitTests.Contract
 
             messageValue = 1000000;
             var state = new SmartContractStateFake(MakeMessage, MakeBlock);
-            var questionContract = new GroupKnowledgeQuestion(state, CID);
+            var contract = new GroupKnowledgeQuestion(state, CID);
 
-            var delimitedAnswers = questionContract.ListAnswers();
+            var delimitedAnswers = contract.ListAnswers();
 
             Assert.False(string.IsNullOrWhiteSpace(delimitedAnswers));
             var answers = delimitedAnswers.Split(",");
@@ -56,16 +56,84 @@ namespace Logicing.Knowing.UnitTests.Contract
 
             messageValue = 1000000;
             var state = new SmartContractStateFake(MakeMessage, MakeBlock);
-            var questionContract = new GroupKnowledgeQuestion(state, QUESTION_CID);
+            var contract = new GroupKnowledgeQuestion(state, QUESTION_CID);
 
-            questionContract.ProposeAnswer(ANSWER_CID);
+            contract.ProposeAnswer(ANSWER_CID);
 
-            var delimitedAnswers = questionContract.ListAnswers();
+            var delimitedAnswers = contract.ListAnswers();
             Assert.False(string.IsNullOrWhiteSpace(delimitedAnswers));
             var answers = delimitedAnswers.Split(",");
             Assert.Contains(ANSWER_CID, answers);
-
         }
+
+        [Fact]
+        public void VotingChangesMembersRankings()
+        {
+            const string QUESTION_CID = "bafyreig32ral25cg3sg5aypz5hjpe7vav5rj3mtzpw2zijcggamyhn3hnu";
+            const string ANSWER1_CID = "bafyreigo6k32pasnq7ttd7236cpxn3xcbbbsbyj6zpbontrwv7lzsxe111";
+            const string ANSWER2_CID = "bafyreigo6k32pasnq7ttd7236cpxn3xcbbbsbyj6zpbontrwv7lzsxe222";
+            const string ANSWER3_CID = "bafyreigo6k32pasnq7ttd7236cpxn3xcbbbsbyj6zpbontrwv7lzsxe333";
+
+            messageValue = 1000000;
+            var state = new SmartContractStateFake(MakeMessage, MakeBlock);
+            var contract = new GroupKnowledgeQuestion(state, QUESTION_CID);
+            contract.ProposeAnswer(ANSWER1_CID);
+            contract.ProposeAnswer(ANSWER2_CID);
+            contract.ProposeAnswer(ANSWER3_CID);
+            var ballot = "4,2,3,1";
+
+            contract.Vote(ballot);
+
+            var rankings = contract.VoterVote();
+            Assert.Equal(ballot, rankings);
+        }
+
+        [Fact]
+        public void VotingChangesAnswerScores()
+        {
+            const string QUESTION_CID = "bafyreig32ral25cg3sg5aypz5hjpe7vav5rj3mtzpw2zijcggamyhn3hnu";
+            const string ANSWER1_CID = "bafyreigo6k32pasnq7ttd7236cpxn3xcbbbsbyj6zpbontrwv7lzsxe111";
+            const string ANSWER2_CID = "bafyreigo6k32pasnq7ttd7236cpxn3xcbbbsbyj6zpbontrwv7lzsxe222";
+            const string ANSWER3_CID = "bafyreigo6k32pasnq7ttd7236cpxn3xcbbbsbyj6zpbontrwv7lzsxe333";
+
+            messageValue = 1000000;
+            var state = new SmartContractStateFake(MakeMessage, MakeBlock);
+            var contract = new GroupKnowledgeQuestion(state, QUESTION_CID);
+            contract.ProposeAnswer(ANSWER1_CID);
+            contract.ProposeAnswer(ANSWER2_CID);
+            contract.ProposeAnswer(ANSWER3_CID);
+            var ballot = "4,2,3,1";
+            
+            contract.Vote(ballot);
+
+            var scores = contract.AnswerScores();
+            Assert.True(scores[3] < scores[0]);
+        }
+
+        [Fact]
+        public void CanVoteAfterAdditionalAnswersAdded()
+        {
+            const string QUESTION_CID = "bafyreig32ral25cg3sg5aypz5hjpe7vav5rj3mtzpw2zijcggamyhn3hnu";
+            const string ANSWER1_CID = "bafyreigo6k32pasnq7ttd7236cpxn3xcbbbsbyj6zpbontrwv7lzsxe111";
+            const string ANSWER2_CID = "bafyreigo6k32pasnq7ttd7236cpxn3xcbbbsbyj6zpbontrwv7lzsxe222";
+            const string ANSWER3_CID = "bafyreigo6k32pasnq7ttd7236cpxn3xcbbbsbyj6zpbontrwv7lzsxe333";
+
+            messageValue = 1000000;
+            var state = new SmartContractStateFake(MakeMessage, MakeBlock);
+            var contract = new GroupKnowledgeQuestion(state, QUESTION_CID);
+            contract.ProposeAnswer(ANSWER1_CID);
+            contract.ProposeAnswer(ANSWER2_CID);
+            var ballot1 = "4,2,1";
+            contract.Vote(ballot1);
+            contract.ProposeAnswer(ANSWER3_CID);
+            var ballot2 = "4, 2, 3, 1";
+            
+            contract.Vote(ballot2);
+
+            var scores = contract.AnswerScores();
+            Assert.True(scores[3] < scores[0]);
+        }
+
 
         private IMessage MakeMessage()
         {
@@ -77,15 +145,6 @@ namespace Logicing.Knowing.UnitTests.Contract
             return new BlockFake(nextBlock++);
         }
 
-        private string ToP2pkh(string addressHex)
-        {
-            const string VERSION = "37";
-
-            var versionedAddress = Convert.FromHexString(VERSION + addressHex);
-            var checkSum = SHA256.HashData(SHA256.HashData(versionedAddress)).Take(4);
-            var p2pkh = versionedAddress.Concat(checkSum).ToArray();
-            return Base58.Bitcoin.Encode(p2pkh);
-        }
 
     }
 }

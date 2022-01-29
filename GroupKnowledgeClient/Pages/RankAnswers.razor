@@ -1,7 +1,11 @@
 ﻿@page "/rank/{contract}"
 @layout MainLayout
 
+@inject NavigationManager navigation;
+@inject ISnackbar snackbar;
+@inject IDialogService dialogService;
 @inject IGroupState groupState;
+@inject IAgentState agentState;
 
 <MudToolBar>
     <MudSpacer />
@@ -52,14 +56,34 @@
     protected override async Task OnParametersSetAsync()
     {
         Question = groupState.SelectedQuestion(Contract);
-        await Question.LoadAnswers();
-        await Question.LoadVote();
+        await Question.Load();
         TotalAnswers = (uint)Question.Answers.Count();
+        if(Question.BestAnswer != null)
+            navigation.NavigateTo($"/best/{Question.Address}");
     }
 
     private async Task Vote()
     {
-
+        var dialog = dialogService.Show<PasswordDialog>();
+        var result = await dialog.Result;
+        var password = result.Data.ToString() ?? string.Empty;
+        if (password == string.Empty)
+        {
+            snackbar.Add("Password not provided", Severity.Warning);
+            return;
+        }
+        agentState.StartTransaction();
+        var success = await Question.Vote(password);
+        agentState.StopTransaction();
+        if (success)
+        {
+            snackbar.Add("Transaction to answer question succeeded", Severity.Success);
+        }
+        else
+        {
+            snackbar.Add("Transaction to answer question failed", Severity.Error);
+        }
+        await OnParametersSetAsync();
     }
 
 }

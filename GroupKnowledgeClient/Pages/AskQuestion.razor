@@ -5,6 +5,7 @@
 @inject ISnackbar snackbar;
 @inject IDialogService dialogService;
 @inject IGroupState groupState;
+@inject IAgentState agentState;
 
 <MudContainer Class="d-flex justify-center align-center">
     <MudPaper Elevation="5" Class="pa-5 mud-width-full" Style="text-align:center">
@@ -43,7 +44,9 @@
         var password = await GetPassword();
         if (string.IsNullOrWhiteSpace(password))
             return;
+        agentState.StartTransaction();
         var success = await Group.Ask(QuestionContent, password);
+        agentState.StopTransaction();
         if (success)
         {
             snackbar.Add("Transaction to ask question succeeded", Severity.Success);

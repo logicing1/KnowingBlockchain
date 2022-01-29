@@ -19,11 +19,10 @@ namespace GroupKnowledgeClient.Model
             throw new NotImplementedException();
         }
 
-        private const int TRANSACTION_DELAY = 5000;
-
         private readonly IBlockchain blockchain;
         private readonly IFilestore fileSystem;
         private readonly Agent agent;
+        private readonly TimeSpan transactionTime = TimeSpan.FromSeconds(15);
 
         public Group(string contractAddress, Agent agent, string? name = default)
         {
@@ -91,33 +90,43 @@ namespace GroupKnowledgeClient.Model
             Questions = questions;
         }
 
-        public async Task<bool> Join(ulong fee, string password)
+        public async Task<bool> Join(string amount, string password)
         {
-            MemberBalance = fee;
-            return true;
+            var transactionId = await blockchain.SendTransaction(agent, password, "Join", amount, new List<string>());
+            if (string.IsNullOrEmpty(transactionId))
+                return false;
+            await Task.Delay(transactionTime);
+            var (success, value) = await blockchain.GetTransactionResult(transactionId);
+            return success;
         }
 
         public async Task<bool> Withdraw(ulong tokens, string password)
         {
-            MemberBalance = 0;
-            return true;
+            var transactionId = await blockchain.SendTransaction(agent, password, "Withdraw", "0", new string[] { $"7#{tokens.ToString()}" });
+            if (string.IsNullOrEmpty(transactionId))
+                return false;
+            await Task.Delay(transactionTime);
+            var (success, value) = await blockchain.GetTransactionResult(transactionId);
+            return success;
         }
 
         public async Task<bool> Ask(string content, string password)
         {
             var cid = await fileSystem.Store(content);
-            var transactionId = await blockchain.SendTransaction(agent, password, "Ask", new string[] { $"4#{cid}" });
-            await Task.Delay(TRANSACTION_DELAY);
-            var address = await blockchain.GetTransactionResult(transactionId);
-            if (string.IsNullOrWhiteSpace(address))
+            var transactionId = await blockchain.SendTransaction(agent, password, "Ask", "0", new string[] { $"4#{cid}" });
+            if (string.IsNullOrEmpty(transactionId))
                 return false;
-            var p2Pkh = ToP2Pkh(address);
+            await Task.Delay(transactionTime);
+            var (success, value) = await blockchain.GetTransactionResult(transactionId);
+            if (success == false || value == string.Empty)
+                return false;
+            var p2Pkh = ToP2Pkh(value!);
             var question = new Question(p2Pkh, Questions.Count() + 1, agent);
             Questions.Add(question);
             return true;
         }
 
-        private string ToP2Pkh(string addressHex)
+        private static string ToP2Pkh(string addressHex)
         {
             const string VERSION = "37";
 

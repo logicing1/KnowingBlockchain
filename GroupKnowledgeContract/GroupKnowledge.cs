@@ -4,11 +4,11 @@ using Stratis.SmartContracts;
 [Deploy]
 public class GroupKnowledge : SmartContract
 {
-    private const ulong MIN_MEMBERSHIP_FEE = 1000000;
+    private const ulong MIN_MEMBERSHIP_FEE = 100000000;
     private const ulong ASK_INTERVAL = 2;  //TODO: Change to longer interval once test/demo completed
     private const int MIN_GROUP_NAME_LENGTH = 5;
     private const int MAX_GROUP_NAME_LENGTH = 50;
-    private const int ANSWER_REWARD_FACTOR = 4;
+    private const int ANSWER_REWARD_FACTOR = 5;
 
     public GroupKnowledge(ISmartContractState contractState, string groupName) : base(contractState)
     {
@@ -94,7 +94,7 @@ public class GroupKnowledge : SmartContract
     public void Join()
     {
         Assert(Message.Value >= GroupMembershipFee, $"There is a minimum membership fee of {GroupMembershipFee} to join the group.");
-        SetMemberBalance(Message.Sender, checked(TokenBalance * Message.Value) / Balance);
+        SetMemberBalance(Message.Sender, (TokenBalance * Message.Value) / (Balance - Message.Value));
         TokenBalance += GetMemberBalance(Message.Sender);
         TotalMembers++;
     }
@@ -102,7 +102,7 @@ public class GroupKnowledge : SmartContract
     public void Withdraw(ulong tokens)
     {
         Assert(tokens <= GetMemberBalance(Message.Sender), "Insufficient token balance for requested withdrawal.");
-        var result = Transfer(Message.Sender, checked(Balance * GetMemberBalance(Message.Sender)) / TokenBalance);
+        var result = Transfer(Message.Sender, checked(Balance * GetMemberBalance(Message.Sender)) / tokens);
         Assert(result.Success, "Transfer failed.");
         SetMemberBalance(Message.Sender, GetMemberBalance(Message.Sender) - tokens);
         if (GetMemberBalance(Message.Sender) == 0) TotalMembers--;
@@ -178,11 +178,15 @@ public class GroupKnowledge : SmartContract
 }
 
 
+
+/// <summary>
+/// A smart contract used to determine the best answer to a group knowledge question.
+/// </summary>
 public class GroupKnowledgeQuestion : SmartContract
 {
     private const string DEFAULT_ANSWER_CID = "bafyreiao4glgd4hejdc5suinjykavjmicaj5d5kckr7md6hetees2skksu"; //"Reject question as off topic, ambiguous, unanswerable, or otherwise invalid.";
-    private const ulong FULL_PARTICIPATION_REQUIRED_PERIOD = 5000;
-    private const ulong PARTICIPATION_REQUIREMENT_REDUCTION_INTERVAL = 1000;
+    private const ulong FULL_PARTICIPATION_REQUIRED_PERIOD = 5;  //TODO: Reset to larger number after test and demo
+    private const ulong PARTICIPATION_REQUIREMENT_REDUCTION_INTERVAL = 1; //TODO: Reset to larger number after test and demo
     private const uint MIN_PARTICIPATION_PERCENT = 25;
     private const uint MIN_REVOTE_PARTICIPATION_PERCENT = 75;
 
@@ -192,7 +196,9 @@ public class GroupKnowledgeQuestion : SmartContract
         QuestionCid = question;
         ParticipationRequirement = MIN_PARTICIPATION_PERCENT;
         TotalAnswers = 0;
-        SetAnswer(TotalAnswers++, DEFAULT_ANSWER_CID, Address, int.MaxValue);
+        SetAnswer(TotalAnswers++, DEFAULT_ANSWER_CID, Address, 0);
+        BestAnswerCid = string.Empty;
+        TotalVotes = 0;
         StartBlock = Block.Number;
     }
 
@@ -238,15 +244,33 @@ public class GroupKnowledgeQuestion : SmartContract
         set => State.SetString(nameof(BestAnswerCid), value);
     }
 
+
+    /// <summary>
+    /// The question this contract is about.
+    /// </summary>
+    /// <returns>A IPFS CID that can be used to get the content of the question.</returns>
     public string Question() => QuestionCid;
 
+
+    /// <summary>
+    /// Propose an answer to the contracted question.
+    /// </summary>
+    /// <param name="cid">
+    ///     An Interplanetary File System (IPFS) Content Identifier (CID) that can be used to retrieve the content of the proposed answer.
+    ///     The content identified by the CID is immutable, therefore once this answer is added to the contract it can not be modified.
+    /// </param>
     public void ProposeAnswer(string cid)
     {
-        var membershipCheckResult = Call(Group, 0, "IsMember");
+        var membershipCheckResult = Call(Group, 0, "IsMember", new object[] {Message.Sender});
         Assert(membershipCheckResult.Success && (bool)membershipCheckResult.ReturnValue == true, "Must be group member to propose an answer.");
         SetAnswer(TotalAnswers++, cid, Message.Sender, 0);
     }
 
+
+    /// <summary>
+    /// All the answers to the question that have been proposed. 
+    /// </summary>
+    /// <returns>Answer CIDs in a comma delimited string</returns>
     public string ListAnswers()
     {
         var asked = new string[TotalAnswers];
@@ -257,19 +281,61 @@ public class GroupKnowledgeQuestion : SmartContract
         return string.Join(',', asked);
     }
 
-    public string VoterVote() => string.Join(',', GetVoterVote(Message.Sender));
 
+    /// <summary>
+    /// Submit a group member's ranking of currently proposed answers.
+    /// </summary>
+    /// <param name="ballot">
+    ///     A list of unsigned integer ranks in order of the answer's sequential index value in a comma delimited string.
+    ///     Ties are permitted, 0 indicates indifference. The number of answers ranked can be shorter than the current
+    ///     number of answers in that it leaves off the most recently proposed answers. 
+    /// </param>
     public void Vote(string ballot)
     {
         var vote = ReadBallot(ballot);
         var isRollback = TryRollback();
+        SetVoterVote(Message.Sender, vote); 
         ApplyAnswerRankings(vote);
-        if (!isRollback && BestAnswerCid.Length == 0) RewardVote();
+        if (!isRollback && BestAnswerCid.Length == 0) 
+            RewardVote();
         TotalVotes++;
-        if (ParticipationRequirementMet()) FindBestAnswer();
+        if (ParticipationRequirementMet()) 
+            FindBestAnswer();
     }
 
+
+    /// <summary>
+    /// The message sender's existing ranking of the proposed answers.
+    /// </summary>
+    /// <returns>A list of unsigned integer ranks in order of the answer's sequential index value in a comma delimited string.</returns>
+    public string VoterVote()
+    {
+        var ranks = GetVoterVote(Message.Sender);
+        var ballot = string.Join(',', ranks);
+        return ballot;
+    }
+
+    /// <summary>
+    /// The current scores for each answer based on voting up to this time.
+    /// </summary>
+    /// <returns>A list of signed integer ranks in order of the answer's sequential index value in a comma delimited string.  Lower is better, negative numbers best.</returns>
+    public string AnswerScores()
+    {
+        var answers = new int[TotalAnswers];
+        for (var index = 0u; index < TotalAnswers; index++)
+        {
+            answers[index] = GetAnswerScore(index);
+        }
+        return string.Join(',', answers);
+    }
+
+
+    /// <summary>
+    /// The group's determination of the best answer to the question.
+    /// </summary>
+    /// <returns>An IPFS CID that can be used to get the content of the best answer.</returns>
     public string BestAnswer() => BestAnswerCid;
+
 
     private int[] ReadBallot(string ballot)
     {
@@ -287,7 +353,8 @@ public class GroupKnowledgeQuestion : SmartContract
     private bool TryRollback()
     {
         var vote = GetVoterVote(Message.Sender);
-        if (vote.Length == 0) return false;
+        if (vote.Length == 0) 
+            return false;
         for (var voteIndex = 0; voteIndex < vote.Length; voteIndex++)
         {
             vote[voteIndex] = vote[voteIndex] * -1;
@@ -298,12 +365,13 @@ public class GroupKnowledgeQuestion : SmartContract
 
     private void ApplyAnswerRankings(int[] vote)
     {
-        for (var answerIndex = 0u; answerIndex < TotalAnswers; answerIndex++)
+        for (var answerIndex = 0u; answerIndex < vote.Length; answerIndex++)
         {
             var margins = 0;
             for (var voteIndex = 0u; voteIndex < vote.Length; voteIndex++)
             {
-                if (voteIndex == answerIndex || vote[voteIndex] == 0) continue;
+                if (voteIndex == answerIndex || vote[voteIndex] == 0) 
+                    continue;
                 margins += vote[answerIndex] - vote[voteIndex];
             }
             SetAnswerScore(answerIndex, margins);
@@ -312,12 +380,15 @@ public class GroupKnowledgeQuestion : SmartContract
 
     private bool ParticipationRequirementMet()
     {
-        if (Block.Number - StartBlock < FULL_PARTICIPATION_REQUIRED_PERIOD) return false;
+        if (Block.Number - StartBlock < FULL_PARTICIPATION_REQUIRED_PERIOD) 
+            return false;
         var result = Call(Group, 0, "MembershipSize");
-        if (!result.Success) return false;
+        if (!result.Success) 
+            return false;
         var membershipSize = (uint)result.ReturnValue;
         var requirement = 100 - (Block.Number - StartBlock) / PARTICIPATION_REQUIREMENT_REDUCTION_INTERVAL;
-        if (requirement < ParticipationRequirement) requirement = ParticipationRequirement;
+        if (requirement < ParticipationRequirement) 
+            requirement = ParticipationRequirement;
         return (ulong)TotalVotes * 100 >= membershipSize * requirement;
     }
 
@@ -334,7 +405,8 @@ public class GroupKnowledgeQuestion : SmartContract
         {
             for (var j = i + 1; j > 0; j--)
             {
-                if (scores[j - 1] <= scores[j]) continue;
+                if (scores[j - 1] <= scores[j]) 
+                    continue;
                 var higherScore = scores[j - 1];
                 var higherScoreAnswer = rankedAnswers[j - 1];
                 scores[j - 1] = scores[j];
@@ -343,8 +415,10 @@ public class GroupKnowledgeQuestion : SmartContract
                 rankedAnswers[j] = higherScoreAnswer;
             }
         }
-        if (scores.Length > 1 && scores[0] == scores[1]) return; //Tie, no best answer yet
-        if (!RewardAnswer(rankedAnswers[0])) return; //Failed to reward as expected so don't resolve yet 
+        if (scores.Length > 1 && scores[0] == scores[1]) 
+            return; //Tie, no best answer yet
+        if (!RewardAnswer(rankedAnswers[0])) 
+            return; //Failed to reward as expected so don't resolve yet 
         BestAnswerCid = GetAnswer(rankedAnswers[0]);
         ResetVoting();
     }
@@ -357,7 +431,8 @@ public class GroupKnowledgeQuestion : SmartContract
 
     private bool RewardAnswer(uint answerIndex)
     {
-        if (BestAnswerCid.Length > 0) return true; //Someone already rewarded
+        if (BestAnswerCid.Length > 0) 
+            return true; //Someone already rewarded
         var bestAnswerAuthor = GetAnswerAuthor(answerIndex);
         var result = Call(Group, 0, "Answered", new object[] { bestAnswerAuthor });
         return result.Success;

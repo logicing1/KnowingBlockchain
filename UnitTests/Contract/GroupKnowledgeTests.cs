@@ -13,6 +13,7 @@ namespace Logicing.Knowing.UnitTests.Contract
     public class GroupKnowledgeTests
     {
         private const string GROUP_NAME = "Test Group 01";
+        private const ulong ONE_COIN = 100000000;
 
         private uint nextSender = 1;
         private ulong nextBlock = 1000;
@@ -21,7 +22,7 @@ namespace Logicing.Knowing.UnitTests.Contract
         [Fact]
         public void CanEstablishWithName()
         {
-            messageValue = 1000000;
+            messageValue = ONE_COIN;
             var state = new SmartContractStateFake(MakeMessage, MakeBlock);
             
             var group = new GroupKnowledge(state, GROUP_NAME);
@@ -32,7 +33,7 @@ namespace Logicing.Knowing.UnitTests.Contract
         [Fact]
         public void CanNotEstablishGroupWithInsufficientFunds()
         {
-            messageValue = 999999;
+            messageValue = ONE_COIN - 1;
             var state = new SmartContractStateFake(MakeMessage, MakeBlock);
 
             Assert.Throws<SmartContractAssertException>(() => new GroupKnowledge(state, GROUP_NAME));
@@ -42,7 +43,7 @@ namespace Logicing.Knowing.UnitTests.Contract
         [Fact]
         public void MembershipFeeEstablishedByCreator()
         {
-            messageValue = 35000000;
+            messageValue = ONE_COIN * 2;
             var state = new SmartContractStateFake(MakeMessage, MakeBlock);
 
             var group = new GroupKnowledge(state, GROUP_NAME);
@@ -53,10 +54,10 @@ namespace Logicing.Knowing.UnitTests.Contract
         [Fact]
         public void JoiningRequiresMembershipFee()
         {
-            messageValue = 35000000;
+            messageValue = ONE_COIN;
             var state = new SmartContractStateFake(MakeMessage, MakeBlock);
             var group = new GroupKnowledge(state, GROUP_NAME);
-            messageValue = 1;
+            messageValue = ONE_COIN - 1;
 
             Assert.Throws<SmartContractAssertException>(() => group.Join());
         }
@@ -64,7 +65,7 @@ namespace Logicing.Knowing.UnitTests.Contract
         [Fact]
         public void JoiningIncreasesMembership()
         {
-            messageValue = 1000000;
+            messageValue = ONE_COIN;
             var state = new SmartContractStateFake(MakeMessage, MakeBlock);
             var group = new GroupKnowledge(state, GROUP_NAME);
             var membership = group.MembershipSize();
@@ -79,7 +80,7 @@ namespace Logicing.Knowing.UnitTests.Contract
         [Fact]
         public void WithdrawingAllTokensReducesMemberCount()
         {
-            messageValue = 1000000;
+            messageValue = ONE_COIN;
             var state = new SmartContractStateFake(MakeMessage, MakeBlock);
             var group = new GroupKnowledge(state, GROUP_NAME);
             var memberBalance = group.MemberBalance();
@@ -96,7 +97,7 @@ namespace Logicing.Knowing.UnitTests.Contract
         {
             const string CID = "bafyreig32ral25cg3sg5aypz5hjpe7vav5rj3mtzpw2zijcggamyhn3hnu";
 
-            messageValue = 1000000;
+            messageValue = ONE_COIN;
             var state = new SmartContractStateFake(MakeMessage, MakeBlock);
             var group = new GroupKnowledge(state, GROUP_NAME);
             var startAsked = group.ListAsked().Length;

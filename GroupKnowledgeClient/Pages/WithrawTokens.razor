@@ -5,6 +5,7 @@
 @inject ISnackbar snackbar;
 @inject IDialogService dialogService;
 @inject IGroupState groupState;
+@inject IAgentState agentState;
 
 <MudContainer Class="d-flex justify-center align-center">
     <MudPaper Elevation="5" Class="pa-5" Style="text-align:center">
@@ -49,7 +50,9 @@
             snackbar.Add("Password not provided", Severity.Warning);
             return;
         }
+        agentState.StartTransaction();
         var success = await Group.Withdraw(TokensOut, password);
+        agentState.StopTransaction();
         if (success)
         {
             snackbar.Add("Withdrew Tokens Successfully", Severity.Success);

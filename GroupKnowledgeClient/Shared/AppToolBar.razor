@@ -14,7 +14,9 @@
     @if (groupState?.Selected?.MemberBalance > 0)
     {
         <MudTooltip Text="Withdraw Tokens" Color="Color.Secondary">
-            <MudIconButton Icon="@Icons.Material.TwoTone.GeneratingTokens" Size="Size.Large" Color="Color.Primary" Link="@($"/withdraw/{groupState?.Selected?.Address}")" />
+            <MudBadge Content="@MTokens()" Color="Color.Secondary" Origin="Origin.CenterLeft" Overlap="true">
+                <MudIconButton Icon="@Icons.Material.TwoTone.GeneratingTokens" Size="Size.Large" Color="Color.Primary" Link="@($"/withdraw/{groupState?.Selected?.Address}")" />
+            </MudBadge>
         </MudTooltip>
     }
     else if (groupState?.Selected != Group.Empty)
@@ -24,6 +26,10 @@
         </MudTooltip>
     }
 </MudToolBar>
+@if (agentState.TransactionInProgress)
+{
+    <MudProgressLinear Size="Size.Large" Color="Color.Warning" Indeterminate="true" />
+}
 
 @code {
     [Parameter]
@@ -32,15 +38,22 @@
     public void Dispose()
     {
         groupState.Changed -= Refresh;
+        agentState.Changed -= Refresh;
     }
 
     protected override void OnInitialized()
     {
         groupState.Changed += Refresh;
+        agentState.Changed += Refresh;
     }
 
     private async Task Refresh()
     {
         StateHasChanged();
+    }
+
+    private string MTokens()
+    {
+        return (groupState?.Selected?.MemberBalance / 1000000).ToString() ?? string.Empty;
     }
 }
