@@ -86,7 +86,7 @@ namespace Logicing.Knowing.UnitTests.Contract
             var memberBalance = group.MemberBalance();
             var membership = group.MembershipSize();
 
-            group.Withdraw(memberBalance);
+            group.Leave();
             
             Assert.Equal(membership - 1, group.MembershipSize());
 
@@ -120,15 +120,6 @@ namespace Logicing.Knowing.UnitTests.Contract
             return new BlockFake(nextBlock++);
         }
 
-        private string ToP2pkh(string addressHex)
-        {
-            const string VERSION = "37";
-
-            var versionedAddress = Convert.FromHexString(VERSION + addressHex);
-            var checkSum = SHA256.HashData(SHA256.HashData(versionedAddress)).Take(4);
-            var p2pkh = versionedAddress.Concat(checkSum).ToArray();
-            return Base58.Bitcoin.Encode(p2pkh);
-        }
 
     }
 }

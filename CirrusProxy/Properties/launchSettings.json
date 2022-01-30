@@ -9,7 +9,7 @@
     }
   },
   "profiles": {
-    "WebApplication4": {
+    "CirrusProxy": {
       "commandName": "Project",
       "dotnetRunMessages": false,
       "launchBrowser": false,

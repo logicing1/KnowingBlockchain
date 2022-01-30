@@ -64,7 +64,7 @@ public class ContractDeploymentTests
     public async Task ContractDeploys()
     {
         const string OPERATION = "build-and-send-create";
-        const string GROUP_NAME = "Group Knowledge Contract 01";
+        const string GROUP_NAME = "Widget Production";
 
         var compilationResult = ContractCompiler.CompileFile(CONTRACT_CODE_FILE);
         var byteCode = compilationResult.Compilation.ToHexString();
@@ -84,7 +84,8 @@ public class ContractDeploymentTests
         var http = new HttpClient() { BaseAddress = new Uri(API_ENDPOINT) };
         var response = await http.PostAsJsonAsync(OPERATION, request);
         Assert.True(response.IsSuccessStatusCode);
-        
+        var result = await response.Content.ReadAsStringAsync();
+        Assert.True(result.Contains("true"));
     }
 
     private void OutputByteCode(ContractCompilationResult compilationResult)

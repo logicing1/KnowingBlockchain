@@ -44,7 +44,7 @@ namespace GroupKnowledgeClient.Services.Default
                     Sender = agent.Address,
                     Parameters = parameters!
                 };
-                var response = await http.PostAsJsonAsync("http://localhost:5203/build-and-send-call", request);
+                var response = await http.PostAsJsonAsync(OPERATION, request);
                 if (!response.IsSuccessStatusCode)
                     return string.Empty;
                 var result = await response.Content.ReadFromJsonAsync<BuildCallContractTransactionResponse>() ?? new BuildCallContractTransactionResponse() { Success = false };

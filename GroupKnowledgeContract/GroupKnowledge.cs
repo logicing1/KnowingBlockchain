@@ -4,11 +4,12 @@ using Stratis.SmartContracts;
 [Deploy]
 public class GroupKnowledge : SmartContract
 {
-    private const ulong MIN_MEMBERSHIP_FEE = 100000000;
-    private const ulong ASK_INTERVAL = 2;  //TODO: Change to longer interval once test/demo completed
+    private const ulong MIN_MEMBERSHIP_FEE = 100000000; //Founder can establish higher
     private const int MIN_GROUP_NAME_LENGTH = 5;
     private const int MAX_GROUP_NAME_LENGTH = 50;
+    private const int VOTING_REWARD_FACTOR = 100;  
     private const int ANSWER_REWARD_FACTOR = 5;
+    private const ulong ASK_INTERVAL = 5;  //TODO: Change to longer interval once test/demo completed
 
     public GroupKnowledge(ISmartContractState contractState, string groupName) : base(contractState)
     {
@@ -20,7 +21,7 @@ public class GroupKnowledge : SmartContract
         SetMemberBalance(Message.Sender, Message.Value);
         TotalMembers = 1;
         TokenBalance = Message.Value;
-        VoterReward = GroupMembershipFee / MIN_MEMBERSHIP_FEE;
+        VoterReward = GroupMembershipFee / VOTING_REWARD_FACTOR;
         AnswererReward = VoterReward * ANSWER_REWARD_FACTOR;
         TotalAsked = 0;
         TotalUnanswered = 0;
@@ -91,23 +92,55 @@ public class GroupKnowledge : SmartContract
 
     public bool IsMember(Address memberAddress) => GetMemberBalance(memberAddress) > 0;
 
+
+    /// <summary>
+    /// Message sender provides funds to become group member.
+    /// </summary>
     public void Join()
     {
         Assert(Message.Value >= GroupMembershipFee, $"There is a minimum membership fee of {GroupMembershipFee} to join the group.");
-        SetMemberBalance(Message.Sender, (TokenBalance * Message.Value) / (Balance - Message.Value));
+        SetMemberBalance(Message.Sender, checked((TokenBalance * Message.Value)) / (Balance - Message.Value));
         TokenBalance += GetMemberBalance(Message.Sender);
         TotalMembers++;
     }
 
+
+    /// <summary>
+    /// Message sender withdraws funds equivalent to all their tokens and is no longer an active group member.
+    /// </summary>
+    public void Leave()
+    {
+        var result = Transfer(Message.Sender, checked((Balance * GetMemberBalance(Message.Sender))) / TokenBalance);
+        Assert(result.Success, "Transfer failed.");
+        SetMemberBalance(Message.Sender, 0);
+        TotalMembers--;
+    }
+
+
+    /// <summary>
+    /// Group member cashes out some of there tokens, but retains tokens equivalent to membership fee.
+    /// </summary>
+    /// <param name="tokens">Number of tokens to withdraw.</param>
     public void Withdraw(ulong tokens)
     {
         Assert(tokens <= GetMemberBalance(Message.Sender), "Insufficient token balance for requested withdrawal.");
-        var result = Transfer(Message.Sender, checked(Balance * GetMemberBalance(Message.Sender)) / tokens);
+        var minTokens = checked((TokenBalance * MembershipFee())) / Balance;
+        Assert(GetMemberBalance(Message.Sender) - tokens >= minTokens, "Token balance can not go below current membership fee value");
+        var result = Transfer(Message.Sender, checked((Balance * tokens)) / TokenBalance);
         Assert(result.Success, "Transfer failed.");
         SetMemberBalance(Message.Sender, GetMemberBalance(Message.Sender) - tokens);
         if (GetMemberBalance(Message.Sender) == 0) TotalMembers--;
     }
 
+
+    /// <summary>
+    /// Ask a question to the group. This will create a contract for that question will control selection of an answer.
+    /// </summary>
+    /// <param name="questionCid">
+    ///     An Interplanetary File System (IPFS) Content Identifier (CID) that can be used to retrieve the content of the question.
+    ///     The content identified by the CID is immutable, therefore once this question is added to the contract it can not be modified.
+    /// </param>
+    /// <returns>Hex value for the question contract that was created. This may be converted to P2PKH to call the question contract.</returns>
     public Address Ask(string questionCid)
     {
         Assert(Block.Number - LastAskBlock > ASK_INTERVAL, $"Only one question can be asked every {ASK_INTERVAL} blocks.");
@@ -120,6 +153,11 @@ public class GroupKnowledge : SmartContract
         return questionContractAddress;
     }
 
+
+    /// <summary>
+    /// All the questions that have been asked of the group. 
+    /// </summary>
+    /// <returns>Question CIDs in a comma delimited string</returns>
     public string ListAsked()
     {
         var asked = new string[TotalAsked];
@@ -130,6 +168,11 @@ public class GroupKnowledge : SmartContract
         return string.Join(',', asked);
     }
 
+
+    /// <summary>
+    /// All the questions that have been asked of the group but have not had a final best answer selected. 
+    /// </summary>
+    /// <returns>Question CIDs in a comma delimited string</returns>
     public string ListUnanswered()
     {
         var unanswered = new string[TotalUnanswered];
@@ -140,6 +183,11 @@ public class GroupKnowledge : SmartContract
         return string.Join(',', unanswered);
     }
 
+
+    /// <summary>
+    /// Notification from a question contract that a member should get credit for voting.
+    /// </summary>
+    /// <param name="voter">Address of group member</param>
     public void Voted(Address voter)
     {
         var index = GetQuestionIndex(Message.Sender);
@@ -148,6 +196,11 @@ public class GroupKnowledge : SmartContract
         SetMemberBalance(voter, GetMemberBalance(voter) + VoterReward);
     }
 
+
+    /// <summary>
+    /// Notification from a question contract that the best answer for a question has been selected and who should get credit.
+    /// </summary>
+    /// <param name="answerer">Group member address</param>
     public void Answered(Address answerer)
     {
         var index = GetQuestionIndex(Message.Sender);
@@ -156,6 +209,7 @@ public class GroupKnowledge : SmartContract
         Assert(GetMemberBalance(answerer) > 0, "Answerer is not a current group member.");
         SetMemberBalance(answerer, GetMemberBalance(answerer) + AnswererReward);
     }
+
 
     private void SetQuestion(uint index, Address questionAddress)
     {

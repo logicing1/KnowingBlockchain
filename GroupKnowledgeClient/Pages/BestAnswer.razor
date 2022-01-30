@@ -26,7 +26,15 @@
         </MudExpansionPanel>
     </MudItem>
     <MudItem xl="4" lg="6" md="12">
-        <AnswerCard Answer="@Best" TotalAnswers="@TotalAnswers" />
+        @if (Best != null)
+        {
+            <MudText Typo="Typo.h5">Best Answer:</MudText>
+            <AnswerCard Answer="@Best" IsBest="true" TotalAnswers="@TotalAnswers"/>
+        }
+        else
+        {
+            <MudText Typo="Typo.h5">No Best Answer Found</MudText>
+        }
     </MudItem>
 </MudGrid>
 
@@ -46,7 +54,6 @@
         Question = groupState.SelectedQuestion(Contract);
         await Question.Load();
         TotalAnswers = (uint)Question.Answers.Count();
-        if(Question.BestAnswer == null)
-            navigation.NavigateTo($"/rank/{Question.Address}");
+        Best = Question.BestAnswer;
     }
 }

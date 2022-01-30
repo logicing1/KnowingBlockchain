@@ -64,7 +64,6 @@ namespace GroupKnowledgeClient.Model
             if (!response.HasValue)
                 return;
             MembershipFee = response.Value.TryGetUInt64(out var fee) ? fee : 0;
-
         }
 
         public async Task LoadBalance()
@@ -93,6 +92,16 @@ namespace GroupKnowledgeClient.Model
         public async Task<bool> Join(string amount, string password)
         {
             var transactionId = await blockchain.SendTransaction(agent, password, "Join", amount, new List<string>());
+            if (string.IsNullOrEmpty(transactionId))
+                return false;
+            await Task.Delay(transactionTime);
+            var (success, value) = await blockchain.GetTransactionResult(transactionId);
+            return success;
+        }
+
+        public async Task<bool> Leave(string password)
+        {
+            var transactionId = await blockchain.SendTransaction(agent, password, "Leave", "0", new List<string>());
             if (string.IsNullOrEmpty(transactionId))
                 return false;
             await Task.Delay(transactionTime);

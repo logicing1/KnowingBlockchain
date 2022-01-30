@@ -15,7 +15,7 @@
         <MudText Typo="Typo.body1">@Answer.Content</MudText>
     </MudCardContent>
     <MudCardActions Style="justify-content: center">
-        @if (IsMember)
+        @if (IsMember && !IsBest)
         {
             <MudTooltip Text="@($"Rank 1 best to {TotalAnswers} worst. 0 means indifferent. Ties permitted.")" Color="Color.Secondary">
                 <div class="d-flex">
@@ -36,6 +36,8 @@
     [Parameter]
     public uint TotalAnswers { get; set; } = 0;
 
+    [Parameter]
+    public bool IsBest { get; set; } = false;
 
     private bool Indifferent { get; set; } = false;
 

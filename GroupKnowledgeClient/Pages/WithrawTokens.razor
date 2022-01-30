@@ -25,6 +25,8 @@
 
     private ulong TokensOut { get; set; } = 0;
 
+    private ulong? MinTokenRequirement { get; set; } = null;  //Todo: More user friendly way to withdraw without going below minimum & distinguish withdraw from leave
+
     protected override async Task OnParametersSetAsync()
     {
         var connected = groupState.Connected.TryGetValue(Contract, out var group);
@@ -51,7 +53,7 @@
             return;
         }
         agentState.StartTransaction();
-        var success = await Group.Withdraw(TokensOut, password);
+        var success = TokensOut == Group.MemberBalance ? await Group.Leave(password) : await Group.Withdraw(TokensOut, password);
         agentState.StopTransaction();
         if (success)
         {
@@ -63,6 +65,4 @@
             snackbar.Add("Transaction to withdraw tokens failed", Severity.Error);
         }
     }
-
-
 }
