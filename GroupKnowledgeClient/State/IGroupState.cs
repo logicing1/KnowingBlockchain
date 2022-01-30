@@ -12,6 +12,8 @@ namespace GroupKnowledgeClient.State
 
         Task Load();
 
+        Task Update();
+
         Task Select(string address);
 
         Question SelectedQuestion(string address);

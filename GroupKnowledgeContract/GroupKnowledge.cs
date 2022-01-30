@@ -7,7 +7,7 @@ public class GroupKnowledge : SmartContract
     private const ulong MIN_MEMBERSHIP_FEE = 100000000; //Founder can establish higher
     private const int MIN_GROUP_NAME_LENGTH = 5;
     private const int MAX_GROUP_NAME_LENGTH = 50;
-    private const int VOTING_REWARD_FACTOR = 100;  
+    private const int VOTING_REWARD_FACTOR = 1000000;  
     private const int ANSWER_REWARD_FACTOR = 5;
     private const ulong ASK_INTERVAL = 5;  //TODO: Change to longer interval once test/demo completed
 

@@ -24,6 +24,12 @@ namespace GroupKnowledgeClient.State.Default
 
         public Question SelectedQuestion(string address) => Selected?.Questions.SingleOrDefault(q => q.Address == address) ?? Question.Empty;
 
+        public async Task Update()
+        {
+            await Selected?.Load()!;
+            NotifyChanged();
+        }
+
         public async Task Select(string address)
         {
             if (!Connected.ContainsKey(address))

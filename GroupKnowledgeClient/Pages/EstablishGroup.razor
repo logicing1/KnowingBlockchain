@@ -10,13 +10,13 @@
         <MudText Typo="Typo.h5" Class="mt-2">Establish Group:</MudText>
         <MudTextField Variant="Variant.Outlined" Class="mt-a" @bind-Value="GroupName" />
         <MudNumericField Variant="Variant.Outlined" Class="mt-2" T="ulong" Label="Transfer Amount" Min="@MIN_MEMBERSHIP_FEE" @bind-Value="TransferAmount" />
-        <MudFab Icon="@Icons.Material.Filled.GroupRemove" Label="Join" Size="Size.Medium" Class="mt-6 align-self-center" Color="Color.Primary" @onclick="Establish" />
+        <MudFab Icon="@Icons.Material.Filled.GroupAdd" Label="Establish" Size="Size.Medium" Class="mt-6 align-self-center" Color="Color.Primary" @onclick="Establish" />
     </MudPaper>
 </MudContainer>
 
 @code {
 
-    private const ulong MIN_MEMBERSHIP_FEE = 1000000;
+    private const ulong MIN_MEMBERSHIP_FEE = 100000000;
 
     private string GroupName { get; set; } = string.Empty;
 

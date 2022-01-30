@@ -64,7 +64,7 @@ public class ContractDeploymentTests
     public async Task ContractDeploys()
     {
         const string OPERATION = "build-and-send-create";
-        const string GROUP_NAME = "Widget Production";
+        const string GROUP_NAME = "Rocket Science";
 
         var compilationResult = ContractCompiler.CompileFile(CONTRACT_CODE_FILE);
         var byteCode = compilationResult.Compilation.ToHexString();

@@ -84,6 +84,7 @@
             snackbar.Add("Transaction to answer question failed", Severity.Error);
         }
         await OnParametersSetAsync();
+        await groupState.Update();
     }
 
 }
