@@ -22,14 +22,16 @@ New answers can be proposed, and votes can be changed at any time before the fin
 
 The best answer selection occurs when the required level of participation is reached and a there is a single winner in the ranked voting.  For an initial period of time this means everyone must have voted, however after an initial consensus period the participation requirement will begin to gradually decline until it reaches an established minimum allowed participation level.
 
-Although individual member’s vote may include ties and may also reflect indifference (no vote) on an answer.  The final best answer must be for a distinct group consensus result.  In the unlikely event of a consensus tie for best, revoting will be needed to break the tie.  
+Although individual member’s vote may include ties and may also reflect indifference (no vote) on an answer, the final best answer must be for a distinct group consensus result.  In the unlikely event of a consensus tie for best, revoting will be needed to break the tie.  
 
 The person who establishes a group determines the name of the group.  They also set the minimum required contribution for membership which is based on what their initial contribution was.  Other than these two factors being the founder of group brings no special powers or rewards compared to other group member.
 
-The Group Knowledge Contract maintains a balance of TCRS based solely on what group members contribute through joining and what the remove through withdrawal of tokens.
+The Group Knowledge Contract maintains a balance of TCRS based solely on what group members contribute through joining and what they remove through withdrawal of tokens.
+
 The contract also maintains a balance of knowledge tokens internally that continually increases to reward members of the group for providing the best answer to a question and for participating through voting on the ranking of proposed answers.  As the number of knowledge tokens increases the value of an individual token in TCRS decreases.  The amount of TCRS a member may withdraw is based on the number of the group’s knowledge tokens they have.
 
 When someone joins the group, they receive an initial knowledge token balance equal to the value of tokens in TCRS at that time.  When a member votes on the best answer to a question, new tokens are created and awarded to them.  When a member’s answer is selected as the best answer, new tokens are created and awarded equal to them.
+
 If a group member provides the best answer frequently, they will be able to withdraw more TCRS than they have contributed.  On the other hand, if a group member does not answer questions and infrequently votes, then they will not be able to withdraw as many TCRS as they contributed.
 
 Groups can form organically and grow, or contract based on how well their members work together to each member’s mutual satisfaction.  Some groups simply won’t work out for any of a wide variety of reasons and this system is designed to allow those groups to phase out without great harm to their participants. 
