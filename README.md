@@ -33,4 +33,29 @@ When someone joins the group, they receive an initial knowledge token balance eq
 If a group member provides the best answer frequently, they will be able to withdraw more TCRS than they have contributed.  On the other hand, if a group member does not answer questions and infrequently votes, then they will not be able to withdraw as many TCRS as they contributed.
 
 Groups can form organically and grow, or contract based on how well their members work together to each member’s mutual satisfaction.  Some groups simply won’t work out for any of a wide variety of reasons and this system is designed to allow those groups to phase out without great harm to their participants. 
+
+The Group Knowledge Builder runs locally on your machine and requires the following four component to be running to function:
+
+- WASM PWA KnowledgeGroupBuilder which will run in browser at localhost port 5002.
+  - Download a zip file with the application code from GitHub using the button above.
+ 
+- Cirrus Core (Private Net) wallet running locally and accessible over port 38223.
+  - https://github.com/stratisproject/CirrusCore/releases/tag/1.6.1.0-privatenet 
+
+- Interplanetary File System node running locally and accessible over port 5001.
+  - https://ipfs.io/#install (either the Desktop or CLI install can be used)
+  - The IPFS configuration for CORS must be enabled 
+
+  `ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["http://localhost:5002"]'`
+  `ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "GET", "POST"]'`
+
+- CirrusProxy app.  A very small pass through which is used to access the Cirrus Core API due to CORS restrictions
+
+Use the Cirrus Core wallet’s Create Contract button to deploy the byte code in this repository and included as a solution file in the zip.  Alternatively, the contract can be automatically deployed by running the ContractDeploymentTest found in the solution.
+
+If running the application from Visual Studio make sure to select the Multiple startup projects option and select both the GroupKnowledgeClient and the CirrusProxy app to run.  IPFS and Cirrus Core must also have been started and running for the GroupKnowledgeClient to function.
+
+When the Group Knowledge Builder App opens in your browser you will need to enter an account address from the Cirrus Core Privite Net with TCRS.  Make a note from the wallet of the address of the deployed contract and enter it when prompted.  This will allow you to access the group but not transfer funds or make you a member of the group.  You can click the account icon in the upper right to become a member and be able to use all the apps functionality.
+
+A brief demonstration can be seen here: https://youtu.be/a53xk2k6u0c
  
