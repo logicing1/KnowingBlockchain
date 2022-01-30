@@ -20,6 +20,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0AD5290B-0B44-4869-A70F-9324C2113AA4}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		GroupKnowledgeByteCode.txt = GroupKnowledgeByteCode.txt
 	EndProjectSection
 EndProject
 Global
